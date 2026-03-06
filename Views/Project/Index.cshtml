@@ -1,0 +1,90 @@
+﻿@model List<Project>
+@{
+    ViewData["Title"] = "Projects";
+}
+
+<div class="projects-page">
+
+    <!-- HEADER -->
+    <div class="projects-header">
+
+        <h2 class="page-title">PROJECTS</h2>
+
+        <a href="/Project/Create" class="btn btn-primary new-project-btn">
+            + New Project
+        </a>
+
+    </div>
+
+
+    <!-- PROJECT GRID -->
+    <div class="projects-grid">
+
+        @foreach (var p in Model)
+        {
+            <div class="project-card">
+
+                <div class="project-top">
+
+                    <h5 class="project-name">@p.ProjectName</h5>
+
+                    <span class="status-badge @(p.ProjectStatus == "Completed" ? "completed" : "ongoing")">
+                        @(p.ProjectStatus ?? "—")
+                    </span>
+
+                </div>
+
+                <p class="project-desc">
+                    @(p.ProjectDetails?.Length > 90 ? p.ProjectDetails.Substring(0, 90) + "..." : p.ProjectDetails)
+                </p>
+
+                <div class="project-meta">
+
+                    <span>🧩 @p.Modules.Count modules</span>
+
+                    <span>📅 @p.ProjectStartDate.ToString("MMM dd, yyyy")</span>
+
+                </div>
+
+                <hr />
+
+                <div class="project-actions">
+
+                    <a href="/Project/Details/@p.ProjectId"
+                       class="btn btn-light btn-sm">
+                        View
+                    </a>
+
+                    <a href="/Project/Edit/@p.ProjectId"
+                       class="btn btn-outline-secondary btn-sm">
+                        Edit
+                    </a>
+
+                    <form method="post"
+                          action="/Project/Delete/@p.ProjectId"
+                          style="display:inline"
+                          onsubmit="return confirm('Delete project?')">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="btn btn-outline-danger btn-sm">
+                            Delete
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+
+@if (!Model.Any())
+{
+    <div class="empty">No projects found.</div>
+}

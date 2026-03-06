@@ -1,0 +1,87 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<link rel="stylesheet" href="~/css/dashboard.css" />
+
+<div class="dashboard-container">
+ <!-- STATS CARDS -->
+
+    <div class="stats-grid">
+
+        <div class="stat-card project">
+            <div class="icon">📁</div>
+            <div class="number">@ViewBag.Projects</div>
+            <div class="label">PROJECTS</div>
+        </div>
+
+        <div class="stat-card ongoing">
+            <div class="icon">▶</div>
+            <div class="number">@ViewBag.Ongoing</div>
+            <div class="label">ONGOING</div>
+        </div>
+
+        <div class="stat-card modules">
+            <div class="icon">🧩</div>
+            <div class="number">@ViewBag.Modules</div>
+            <div class="label">MODULES</div>
+        </div>
+
+        <div class="stat-card tasks">
+            <div class="icon">✔</div>
+            <div class="number">@ViewBag.Tasks</div>
+            <div class="label">TASKS</div>
+        </div>
+
+        <div class="stat-card completed">
+            <div class="icon">🎯</div>
+            <div class="number">@ViewBag.Completed</div>
+            <div class="label">COMPLETED</div>
+        </div>
+
+        <div class="stat-card assignments">
+            <div class="icon">📌</div>
+            <div class="number">@ViewBag.Assignments</div>
+            <div class="label">ASSIGNMENTS</div>
+        </div>
+
+        <div class="stat-card employees">
+            <div class="icon">👥</div>
+            <div class="number">@ViewBag.Employees</div>
+            <div class="label">EMPLOYEES</div>
+        </div>
+
+        <div class="stat-card documents">
+            <div class="icon">🗃️</div>
+            <div class="number">0</div>
+            <div class="label">DOCUMENTS</div>
+        </div>
+
+    </div>
+
+
+    <!-- QUICK ACTIONS -->
+
+    <div class="panel quick-actions">
+
+        <h3>Quick Actions</h3>
+
+        <div class="actions">
+
+            <button class="qa-employee">+ New Employee</button>
+
+            <button class="qa-project">+ New Project</button>
+
+            <button class="qa-module">+ New Module</button>
+
+            <button class="qa-task">+ New Task</button>
+
+            <button class="qa-assignment">+ New Assignment</button>
+
+            <button class="qa-designation">+ New Designation</button>
+
+        </div>
+
+    </div>
+
+</div>

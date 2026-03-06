@@ -1,0 +1,196 @@
+﻿@model GPMS.ViewModels.LoginViewModel
+
+@{
+    Layout = null;
+}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Government Project Management System</title>
+
+    <style>
+
+        body {
+            margin: 0;
+            font-family: Segoe UI;
+            background: #f4f7fb;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* LEFT PANEL */
+
+        .left {
+            flex: 65%;
+            background: #e9f2ff;
+            padding: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+            .left img {
+                width: 90px;
+                height: auto;
+                margin-bottom: 20px;
+            }
+
+        .title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #0a2a66;
+            max-width: 600px;
+        }
+
+        .subtitle {
+            margin-top: 10px;
+            color: #5a6b8a;
+            font-size: 16px;
+        }
+
+        /* RIGHT PANEL */
+
+        .right {
+            flex: 35%;
+            background: white;
+            padding: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            color: #0a2a66;
+            font-size: 28px;
+        }
+
+        label {
+            font-size: 14px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 6px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: 1px solid #d2d8e5;
+            font-size: 14px;
+        }
+
+        .captcha-box {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .captcha {
+            background: #eef3ff;
+            padding: 12px 18px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 18px;
+        }
+
+        .captcha-box input {
+            margin: 0;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #2f6fed;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+            button:hover {
+                background: #1c55c8;
+            }
+
+        .error {
+            color: red;
+            margin-bottom: 15px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- LEFT SIDE -->
+
+        <div class="left">
+
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Emblem_of_India.svg/200px-Emblem_of_India.svg.png">
+
+            <div class="title">
+                Government Project Management System
+            </div>
+
+            <div class="subtitle">
+                Government of Jammu and Kashmir
+            </div>
+
+        </div>
+
+        <!-- RIGHT SIDE -->
+
+        <div class="right">
+
+            <h2>Sign In</h2>
+
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div class="error">@error.ErrorMessage</div>
+            }
+
+            <form method="post">
+
+                <label>Username</label>
+                <input asp-for="Username" />
+
+                <label>Password</label>
+                <input asp-for="Password" type="password" />
+
+                <label>Captcha</label>
+
+                <div class="captcha-box">
+
+                    <div class="captcha">
+                        @Model.CaptchaCode
+                    </div>
+
+                    <input asp-for="Captcha" placeholder="Enter captcha" />
+
+                </div>
+
+                <button type="submit">
+                    Sign In
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

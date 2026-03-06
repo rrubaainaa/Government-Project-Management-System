@@ -1,0 +1,110 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - GPMS</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/dashboard.css" />
+
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg bg-white shadow-sm px-4 gpms-navbar">
+
+        <!-- LOGO + SYSTEM NAME -->
+        <div class="d-flex align-items-center me-4">
+
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Emblem_of_India.svg/200px-Emblem_of_India.svg.png" style="height:40px;width:auto;margin-right:10px";  />
+
+            <span class="navbar-brand fw-bold system-title">
+                Government Project Management System
+            </span>
+
+        </div>
+
+
+        <div class="collapse navbar-collapse">
+
+            <!-- NAVIGATION MENU -->
+            <ul class="navbar-nav me-auto gpms-menu">
+
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Project" asp-action="Index">Projects</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Module" asp-action="Index">Modules</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Task" asp-action="Index">Tasks</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Assignment" asp-action="Index">Assignments</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Employee" asp-action="Index">Employees</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Role" asp-action="Index">Roles</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Permission" asp-action="Index">Permissions</a>
+                </li>
+
+            </ul>
+
+
+            <!-- USER PROFILE -->
+             <div class="d-flex align-items-center user-section">
+
+                <!--<div class="me-3 text-end">
+                    <div class="fw-bold">@ViewBag.EmployeeName</div>
+                    <small class="text-muted">@ViewBag.EmployeeDesignation</small>
+                </div>
+
+                <div class="avatar me-3">
+                    @ViewBag.EmployeeInitial
+                </div>-->
+
+                <a asp-controller="Account"
+                   asp-action="Logout"
+                   class="btn btn-outline-danger logout-btn">
+
+                    Logout
+                </a>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+    <!-- MAIN CONTENT -->
+
+    <div class="container-fluid mt-4">
+
+        @RenderBody()
+
+    </div>
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

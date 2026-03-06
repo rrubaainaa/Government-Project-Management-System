@@ -1,0 +1,406 @@
+﻿body {
+    margin: 0;
+    font-family: Segoe UI;
+    background: #f4f7fb;
+    color: #1e293b;
+}
+
+/* NAVBAR */
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 30px; /* smaller navbar */
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+/* NAV MENU */
+
+.menu a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #334155;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+    .menu a:hover {
+        box-shadow: 0 0 6px rgba(0,0,0,0.15);
+    }
+
+/* USER SECTION */
+
+.user-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(45deg,#6366f1,#8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+.user-info .name {
+    font-weight: 700;
+}
+
+.user-info .role {
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* LOGOUT */
+
+.logout-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #f87171;
+    background: white;
+    color: #dc2626;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+    .logout-btn:hover {
+        background: #dc2626;
+        color: white;
+    }
+
+/* DASHBOARD */
+
+.dashboard-container {
+    padding: 30px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(8,1fr);
+    gap: 15px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    font-weight: 600;
+}
+
+    /* COLORED TOP BORDERS */
+
+    .stat-card:nth-child(1) {
+        border-top: 4px solid #f59e0b;
+    }
+
+    .stat-card:nth-child(2) {
+        border-top: 4px solid #3b82f6;
+    }
+
+    .stat-card:nth-child(3) {
+        border-top: 4px solid #8b5cf6;
+    }
+
+    .stat-card:nth-child(4) {
+        border-top: 4px solid #10b981;
+    }
+
+    .stat-card:nth-child(5) {
+        border-top: 4px solid #ef4444;
+    }
+
+    .stat-card:nth-child(6) {
+        border-top: 4px solid #ec4899;
+    }
+
+    .stat-card:nth-child(7) {
+        border-top: 4px solid #6366f1;
+    }
+
+    .stat-card:nth-child(8) {
+        border-top: 4px solid #94a3b8;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        transition: 0.2s;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+/* ICONS */
+
+.icon {
+    font-size: 26px;
+    filter: brightness(1.3); /* brighter icons */
+}
+
+/* NUMBERS */
+
+.number {
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 5px;
+}
+
+.label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+/* PANELS */
+
+.panel {
+    margin-top: 25px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+/* QUICK ACTION BUTTONS */
+
+.actions button {
+    margin: 8px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: white;
+}
+
+    /* COLORFUL BUTTONS */
+
+    .actions button:nth-child(1) {
+        background: #6366f1;
+    }
+
+    .actions button:nth-child(2) {
+        background: #10b981;
+    }
+
+    .actions button:nth-child(3) {
+        background: #3b82f6;
+    }
+
+    .actions button:nth-child(4) {
+        background: #f59e0b;
+    }
+
+    .actions button:nth-child(5) {
+        background: #ec4899;
+    }
+
+    .actions button:nth-child(6) {
+        background: #64748b;
+    }
+
+    .actions button:hover {
+        opacity: 0.9;
+    }
+
+/* PROJECT PAGE */
+
+.projects-page {
+    padding: 30px;
+}
+
+/* HEADER */
+
+.projects-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 600;
+}
+
+/* GRID */
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 320px);
+    gap: 25px;
+}
+
+/* CARD */
+
+.project-card {
+    background: white;
+    border: 1px solid #f59e0b;
+    border-radius: 10px;
+    padding: 20px;
+    transition: 0.2s;
+}
+
+    .project-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+/* CARD HEADER */
+
+.project-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.project-name {
+    font-weight: 600;
+}
+
+/* STATUS */
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+    .status-badge.ongoing {
+        background: #e7f1ff;
+        color: #1a73e8;
+    }
+
+    .status-badge.completed {
+        background: #e6f7ec;
+        color: #1e7e34;
+    }
+
+/* DESCRIPTION */
+
+.project-desc {
+    color: #555;
+    margin: 10px 0;
+}
+
+/* META */
+
+.project-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+/* ACTIONS */
+
+.project-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* PAGE HEADER */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+    .page-header h2 {
+        font-weight: 600;
+    }
+
+
+/* FORM CARD */
+
+.form-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 25px;
+    max-width: 900px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+
+/* FORM GROUP */
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+    .form-group label {
+        font-weight: 500;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+
+/* INPUTS */
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+    .form-control:focus {
+        border-color: #2563eb;
+        outline: none;
+    }
+
+
+/* ROW */
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+    .form-row .form-group {
+        flex: 1;
+    }
+
+
+/* BUTTON */
+
+.btn-primary {
+    background: #2563eb;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    color: white;
+    font-weight: 500;
+}
+
+    .btn-primary:hover {
+        background: #1d4ed8;
+    }
+
+
+/* BACK BUTTON */
+
+.btn-light {
+    border: 1px solid #d1d5db;
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: white;
+}
