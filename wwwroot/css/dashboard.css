@@ -266,6 +266,11 @@ body {
     background: #6366f1;
 }
 
+.qa-document {
+    background: #14b8a6 !important;
+    color: white !important;
+}
+
 /* BUTTON HOVER */
 
 .actions button:hover {

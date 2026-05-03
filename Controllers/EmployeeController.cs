@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Security.Cryptography; // ✅ ADDED
 
 namespace GPMS.Controllers
 {
@@ -16,15 +17,18 @@ namespace GPMS.Controllers
         private readonly AppDbContext _context;
         private readonly PermissionService _permissionService;
         private readonly IPasswordHasher<Employee> _passwordHasher;
+        private readonly EmailService _emailService; // ✅ ADDED
 
         public EmployeeController(
             AppDbContext context,
             PermissionService permissionService,
-            IPasswordHasher<Employee> passwordHasher)
+            IPasswordHasher<Employee> passwordHasher,
+            EmailService emailService) // ✅ ADDED
         {
             _context = context;
             _permissionService = permissionService;
             _passwordHasher = passwordHasher;
+            _emailService = emailService; // ✅ ADDED
         }
 
         private int GetEmployeeId()
@@ -85,16 +89,41 @@ namespace GPMS.Controllers
 
             if (ModelState.IsValid)
             {
-                var defaultPassword = "nicemployee123#";
+                // ✅ GENERATE RESET TOKEN (instead of default password)
+                var tokenBytes = RandomNumberGenerator.GetBytes(32);
+                var token = Convert.ToBase64String(tokenBytes)
+                    .Replace("+", "-")
+                    .Replace("/", "_")
+                    .Replace("=", "");
 
-                employee.Epassword = _passwordHasher.HashPassword(employee, defaultPassword);
+                employee.ResetToken = token;
+                employee.ResetTokenExpiry = DateTime.UtcNow.AddHours(24);
+
+                // ✅ NO PASSWORD STORED
+                employee.Epassword = null;
                 employee.IsFirstLogin = true;
                 employee.PasswordChangedAt = null;
 
                 _context.Add(employee);
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "Employee created successfully.";
+                // ✅ SEND EMAIL
+                var resetLink = $"{Request.Scheme}://{Request.Host}/Account/ResetPassword?token={token}&email={employee.Email}";
+
+                var body = $@"
+                    <p>Hello {employee.EmployeeName},</p>
+                    <p>Your account has been created.</p>
+                    <p>Click below to set your password:</p>
+                    <p><a href='{resetLink}'>Set Password</a></p>
+                    <p>This link will expire in 24 hours.</p>";
+
+                await _emailService.SendEmailAsync(
+                    employee.Email,
+                    "Set Your Password",
+                    body
+                );
+
+                TempData["Success"] = "Employee created successfully. Password setup link sent to email.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -165,7 +194,7 @@ namespace GPMS.Controllers
             return View(emp);
         }
 
-        // ✅ FINAL DELETE METHOD (POST ONLY)
+        // ✅ DELETE (UNCHANGED)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -180,14 +209,12 @@ namespace GPMS.Controllers
             if (emp == null)
                 return NotFound();
 
-            // ❌ Admin cannot be deleted
             if (emp.IsAdmin)
             {
                 TempData["Error"] = "Admin user cannot be deleted.";
                 return RedirectToAction(nameof(Index));
             }
 
-            // 🔴 CHECK ASSIGNMENTS
             bool assignedToProject = await _context.Assignments
                 .AnyAsync(a => a.EmployeeId == id && a.ProjectId != null);
 
@@ -197,7 +224,6 @@ namespace GPMS.Controllers
             bool assignedToTask = await _context.Assignments
                 .AnyAsync(a => a.EmployeeId == id && a.TaskId != null);
 
-            // 🔴 SHOW SPECIFIC WARNING
             if (assignedToProject)
             {
                 TempData["Error"] = "Cannot delete employee. Assigned to a project.";
@@ -214,7 +240,6 @@ namespace GPMS.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // ✅ DELETE
             _context.Employees.Remove(emp);
             await _context.SaveChangesAsync();
 

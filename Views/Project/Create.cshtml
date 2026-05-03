@@ -10,7 +10,7 @@
 
         <h2 class="page-title">Create Project</h2>
 
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
 
             @Html.AntiForgeryToken()
 
@@ -54,6 +54,12 @@
                     <span asp-validation-for="ProjectEndDate" class="text-danger"></span>
                 </div>
 
+            </div>
+
+            <!-- DOCUMENT UPLOAD -->
+            <div class="form-group">
+                <label>Upload Document</label>
+                <input type="file" name="documentFile" class="form-control" />
             </div>
 
             <!-- BUTTON -->

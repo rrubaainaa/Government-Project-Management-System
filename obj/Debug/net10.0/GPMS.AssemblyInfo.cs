@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GPMS")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6af5394fc293e09b65bd82c67208ebe1b79b2d61")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c889130b003a1525353a8af11741da337f00c9cc")]
 [assembly: System.Reflection.AssemblyProductAttribute("GPMS")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GPMS")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,6 +1,4 @@
 wwwroot\css\dashboard.css
-wwwroot\css\site.css
-wwwroot\Emblem_of_India.png
 wwwroot\favicon.ico
 wwwroot\js\site.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
@@ -63,6 +61,8 @@ wwwroot\lib\jquery\dist\jquery.slim.js
 wwwroot\lib\jquery\dist\jquery.slim.min.js
 wwwroot\lib\jquery\dist\jquery.slim.min.map
 wwwroot\lib\jquery\LICENSE.txt
+wwwroot\css\site.css
+wwwroot\Emblem_of_India.png
 D:\rubucode\nic project\GPMS\wwwroot\css\site.css
 D:\rubucode\nic project\GPMS\wwwroot\favicon.ico
 D:\rubucode\nic project\GPMS\wwwroot\js\site.js

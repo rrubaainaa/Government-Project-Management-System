@@ -3,9 +3,8 @@ using GPMS.Models;
 using GPMS.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using OfficeOpenXml; 
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace GPMS.Controllers
@@ -15,11 +14,16 @@ namespace GPMS.Controllers
     {
         private readonly AppDbContext _context;
         private readonly PermissionService _permissionService;
+        private readonly IWebHostEnvironment _environment;
 
-        public ModuleController(AppDbContext context, PermissionService permissionService)
+        public ModuleController(
+            AppDbContext context,
+            PermissionService permissionService,
+            IWebHostEnvironment environment)
         {
             _context = context;
             _permissionService = permissionService;
+            _environment = environment;
         }
 
         private int GetEmployeeId()
@@ -32,7 +36,7 @@ namespace GPMS.Controllers
         }
 
         // =========================================
-        // 🔥 UPDATED: Index WITH FILTERS
+        // 🔥 INDEX (FIXED)
         // =========================================
         public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate, string status)
         {
@@ -40,9 +44,6 @@ namespace GPMS.Controllers
 
             var employee = await _context.Employees
                 .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
-
-            if (employee == null)
-                return RedirectToAction("Login", "Account");
 
             var allModules = await _context.Modules
                 .Include(m => m.Project)
@@ -57,133 +58,212 @@ namespace GPMS.Controllers
                 bool isAssigned = await _context.Assignments
                     .AnyAsync(a => a.EmployeeId == employeeId && a.ProjectId == m.ProjectId);
 
-                bool canView = await _permissionService.HasPermission(employeeId, m.ProjectId, "ViewModule");
+                bool canView = await _permissionService.HasPermission(employeeId, m.ModuleId, "ViewModule");
 
                 if (employee.IsAdmin || (isAssigned && canView))
                 {
-                    bool match = true;
+                    filteredModules.Add(m);
 
-                    // ✅ START DATE
-                    if (startDate.HasValue)
-                    {
-                        var start = DateOnly.FromDateTime(startDate.Value);
-                        if (m.ModuleStartDate.HasValue && m.ModuleStartDate.Value < start)
-                            match = false;
-                    }
-
-                    // ✅ END DATE
-                    if (endDate.HasValue)
-                    {
-                        var end = DateOnly.FromDateTime(endDate.Value);
-                        if (m.ModuleEndDate.HasValue && m.ModuleEndDate.Value > end)
-                            match = false;
-                    }
-
-                    // ✅ STATUS
-                    if (!string.IsNullOrEmpty(status) && m.ModuleStatus != status)
-                        match = false;
-
-                    if (match)
-                    {
-                        filteredModules.Add(m);
-
-                        var perms = await _permissionService.GetPermissions(employeeId, m.ProjectId);
-                        modulePermissions[m.ModuleId] = perms;
-                    }
+                    // ✅ FIX: ModuleId
+                    var perms = await _permissionService.GetPermissions(employeeId, m.ModuleId);
+                    modulePermissions[m.ModuleId] = perms;
                 }
             }
 
             ViewBag.ModulePermissions = modulePermissions;
-            ViewBag.CanCreateModule = await _permissionService.HasPermission(employeeId, null, "CreateModule");
+
+            ViewBag.CanCreateModule = employee.IsAdmin ||
+                await _permissionService.HasPermission(employeeId, null, "CreateModule");
+
             ViewBag.Projects = await _context.Projects.ToListAsync();
+            ViewBag.IsAdmin = employee.IsAdmin;
 
             return View(filteredModules);
         }
 
         // =========================================
-        // 🔥 NEW: ExportToExcel
+        // 🔥 DETAILS (FIXED)
         // =========================================
-        public async Task<IActionResult> ExportToExcel(DateTime? startDate, DateTime? endDate, string status)
+        public async Task<IActionResult> Details(int id)
         {
-            // 🔥 LICENSE FIX
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
             var employeeId = GetEmployeeId();
 
-            var employee = await _context.Employees
-                .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
-
-            if (employee == null)
-                return RedirectToAction("Login", "Account");
-
-            var allModules = await _context.Modules
+            var module = await _context.Modules
                 .Include(m => m.Project)
                 .Include(m => m.Tasks)
-                .ToListAsync();
+                .Include(m => m.Assignments)
+                    .ThenInclude(a => a.Employee)
+                .Include(m => m.Assignments)
+                    .ThenInclude(a => a.Role)
+                .FirstOrDefaultAsync(m => m.ModuleId == id);
 
-            var filteredModules = new List<Module>();
+            if (module == null)
+                return NotFound();
 
-            foreach (var m in allModules)
+            var employee = await _context.Employees.FindAsync(employeeId);
+
+            bool isAssigned = await _context.Assignments
+                .AnyAsync(a => a.EmployeeId == employeeId && a.ProjectId == module.ProjectId);
+
+            bool canView = await _permissionService.HasPermission(employeeId, module.ModuleId, "ViewModule");
+
+            if (!employee.IsAdmin && !(isAssigned && canView))
+                return Forbid();
+
+            ViewBag.IsAdmin = employee.IsAdmin;
+
+            // TASK PERMISSIONS
+            var taskPermissions = new Dictionary<int, List<string>>();
+
+            foreach (var t in module.Tasks)
             {
-                bool isAssigned = await _context.Assignments
-                    .AnyAsync(a => a.EmployeeId == employeeId && a.ProjectId == m.ProjectId);
-
-                bool canView = await _permissionService.HasPermission(employeeId, m.ProjectId, "ViewModule");
-
-                if (employee.IsAdmin || (isAssigned && canView))
-                {
-                    bool match = true;
-
-                    if (startDate.HasValue)
-                    {
-                        var start = DateOnly.FromDateTime(startDate.Value);
-                        if (m.ModuleStartDate.HasValue && m.ModuleStartDate.Value < start)
-                            match = false;
-                    }
-
-                    if (endDate.HasValue)
-                    {
-                        var end = DateOnly.FromDateTime(endDate.Value);
-                        if (m.ModuleEndDate.HasValue && m.ModuleEndDate.Value > end)
-                            match = false;
-                    }
-
-                    if (!string.IsNullOrEmpty(status) && m.ModuleStatus != status)
-                        match = false;
-
-                    if (match)
-                        filteredModules.Add(m);
-                }
+                var perms = await _permissionService.GetPermissions(employeeId, t.TaskId);
+                taskPermissions[t.TaskId] = perms;
             }
 
-            using (var package = new ExcelPackage())
+            ViewBag.TaskPermissions = taskPermissions;
+
+            ViewBag.CanCreateTask = employee.IsAdmin ||
+                await _permissionService.HasPermission(employeeId, module.ProjectId, "CreateTask");
+
+            ViewBag.CanViewEmployee = employee.IsAdmin ||
+                await _permissionService.HasPermission(employeeId, module.ProjectId, "ViewEmployee");
+
+            ViewBag.CanEditEmployee = employee.IsAdmin ||
+                await _permissionService.HasPermission(employeeId, module.ProjectId, "EditEmployee");
+
+            return View(module);
+        }
+
+        // =========================================
+        // 🔥 CREATE (FIXED)
+        // =========================================
+        public async Task<IActionResult> Create()
+        {
+            var employeeId = GetEmployeeId();
+
+            var employee = await _context.Employees.FindAsync(employeeId);
+
+            if (!employee.IsAdmin &&
+                !await _permissionService.HasPermission(employeeId, null, "CreateModule"))
+                return Forbid();
+
+            List<Project> projects;
+
+            if (employee.IsAdmin)
             {
-                var ws = package.Workbook.Worksheets.Add("Modules");
-
-                ws.Cells[1, 1].Value = "Module Name";
-                ws.Cells[1, 2].Value = "Project";
-                ws.Cells[1, 3].Value = "Tasks Count";
-                ws.Cells[1, 4].Value = "Start Date";
-                ws.Cells[1, 5].Value = "End Date";
-                ws.Cells[1, 6].Value = "Status";
-
-                int row = 2;
-
-                foreach (var m in filteredModules)
-                {
-                    ws.Cells[row, 1].Value = m.ModuleName;
-                    ws.Cells[row, 2].Value = m.Project?.ProjectName;
-                    ws.Cells[row, 3].Value = m.Tasks.Count;
-                    ws.Cells[row, 4].Value = m.ModuleStartDate?.ToString("yyyy-MM-dd");
-                    ws.Cells[row, 5].Value = m.ModuleEndDate?.ToString("yyyy-MM-dd");
-                    ws.Cells[row, 6].Value = m.ModuleStatus;
-                    row++;
-                }
-
-                return File(package.GetAsByteArray(),
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    "Modules.xlsx");
+                projects = await _context.Projects.ToListAsync();
             }
+            else
+            {
+                var assignedProjectIds = await _context.Assignments
+                    .Where(a => a.EmployeeId == employeeId)
+                    .Select(a => a.ProjectId)
+                    .Distinct()
+                    .ToListAsync();
+
+                projects = await _context.Projects
+                    .Where(p => assignedProjectIds.Contains(p.ProjectId))
+                    .ToListAsync();
+            }
+
+            ViewBag.ProjectList = new SelectList(projects, "ProjectId", "ProjectName");
+
+            return View();
+        }
+
+        // =========================================
+        // 🔥 EDIT (FIXED)
+        // =========================================
+        public async Task<IActionResult> Edit(int id)
+        {
+            var employeeId = GetEmployeeId();
+
+            var module = await _context.Modules.FindAsync(id);
+            if (module == null)
+                return NotFound();
+
+            var employee = await _context.Employees.FindAsync(employeeId);
+
+            if (!employee.IsAdmin &&
+                !await _permissionService.HasPermission(employeeId, id, "EditModule"))
+                return Forbid();
+
+            ViewBag.ProjectList = new SelectList(_context.Projects, "ProjectId", "ProjectName", module.ProjectId);
+
+            return View(module);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(Module module)
+        {
+            var employeeId = GetEmployeeId();
+
+            var employee = await _context.Employees.FindAsync(employeeId);
+
+            if (!employee.IsAdmin &&
+                !await _permissionService.HasPermission(employeeId, module.ModuleId, "EditModule"))
+                return Forbid();
+
+            if (ModelState.IsValid)
+            {
+                _context.Modules.Update(module);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = "Module updated successfully.";
+                return RedirectToAction("Details", "Project", new { id = module.ProjectId });
+            }
+
+            return View(module);
+        }
+
+        // =========================================
+        // 🔥 DELETE (FIXED)
+        // =========================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var employeeId = GetEmployeeId();
+
+            var module = await _context.Modules
+                .Include(m => m.Tasks)
+                .FirstOrDefaultAsync(m => m.ModuleId == id);
+
+            if (module == null)
+                return NotFound();
+
+            var employee = await _context.Employees.FindAsync(employeeId);
+
+            // ✅ FIX: admin override + ModuleId
+            if (!employee.IsAdmin &&
+                !await _permissionService.HasPermission(employeeId, id, "DeleteModule"))
+                return Forbid();
+
+            bool hasTasks = module.Tasks.Any();
+
+            bool hasAssignments = await _context.Assignments
+                .AnyAsync(a => a.ModuleId == id);
+
+            if (hasTasks || hasAssignments)
+            {
+                int taskCount = module.Tasks.Count;
+
+                int assignmentCount = await _context.Assignments
+                    .CountAsync(a => a.ModuleId == id);
+
+                TempData["Error"] = $"Cannot delete module. It has {taskCount} tasks and {assignmentCount} assignments.";
+
+                return RedirectToAction("Details", "Project", new { id = module.ProjectId });
+            }
+
+            _context.Modules.Remove(module);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Module deleted successfully.";
+
+            return RedirectToAction("Details", "Project", new { id = module.ProjectId });
         }
     }
 }

@@ -7,10 +7,10 @@
     var selectedProjectId = ViewBag.SelectedProjectId?.ToString() ?? "";
     var selectedModuleId = ViewBag.SelectedModuleId?.ToString() ?? "";
     var searchText = ViewBag.Search?.ToString() ?? "";
-
     var selectedStatus = ViewBag.Status?.ToString() ?? "";
     var startDate = ViewBag.StartDate?.ToString() ?? "";
     var endDate = ViewBag.EndDate?.ToString() ?? "";
+    bool isAdmin = ViewBag.IsAdmin == true;
 }
 
 <div class="page-container">
@@ -22,93 +22,57 @@
 
     <form method="get" asp-action="Index" id="filterForm">
 
-        <!-- 🔹 ROW 1 -->
         <div class="search-bar" style="display:flex; gap:10px; margin-bottom:10px;">
 
+            <!-- ✅ PROJECT DROPDOWN (FIXED) -->
             <select id="projectId" name="projectId" class="form-control">
                 <option value="">All Projects</option>
-                @foreach (var p in ViewBag.Projects)
+                @if (ViewBag.Projects != null)
                 {
-                    if (selectedProjectId == p.Value)
+                    foreach (var p in ViewBag.Projects as List<SelectListItem>)
                     {
-                        <option value="@p.Value" selected>@p.Text</option>
-                    }
-                    else
-                    {
-                        <option value="@p.Value">@p.Text</option>
+                        var selected = selectedProjectId == p.Value;
+
+                        <option value="@p.Value" selected="@(selected ? "selected" : null)">
+                            @p.Text
+                        </option>
                     }
                 }
             </select>
 
+            <!-- ✅ MODULE DROPDOWN (FIXED SAME WAY) -->
             <select id="moduleId" name="moduleId" class="form-control">
                 <option value="">All Modules</option>
-                @foreach (var m in ViewBag.Modules)
+                @if (ViewBag.Modules != null)
                 {
-                    if (selectedModuleId == m.Value)
+                    foreach (var m in ViewBag.Modules as List<SelectListItem>)
                     {
-                        <option value="@m.Value" selected>@m.Text</option>
-                    }
-                    else
-                    {
-                        <option value="@m.Value">@m.Text</option>
+                        var selected = selectedModuleId == m.Value;
+
+                        <option value="@m.Value" selected="@(selected ? "selected" : null)">
+                            @m.Text
+                        </option>
                     }
                 }
             </select>
 
-            <input type="text"
-                   id="taskSearch"
-                   name="search"
-                   class="form-control"
-                   placeholder="Search task..."
-                   value="@searchText" />
+            <input type="text" name="search" class="form-control"
+                   placeholder="Search task..." value="@searchText" />
 
-            <!-- 🔥 SEARCH BUTTON -->
             <button type="submit" class="btn btn-primary-custom">Search</button>
-
         </div>
 
-        <!-- 🔹 ROW 2 -->
         <div class="search-bar" style="display:flex; gap:10px;">
-
             <input type="date" name="startDate" class="form-control" value="@startDate" />
             <input type="date" name="endDate" class="form-control" value="@endDate" />
 
             <select name="status" class="form-control">
                 <option value="">All Status</option>
-
-                @if (selectedStatus == "Pending")
-                {
-                    <option value="Pending" selected>Pending</option>
-                }
-                else
-                {
-                    <option value="Pending">Pending</option>
-                }
-
-                @if (selectedStatus == "In Progress")
-                {
-                    <option value="In Progress" selected>In Progress</option>
-                }
-                else
-                {
-                    <option value="In Progress">In Progress</option>
-                }
-
-                @if (selectedStatus == "Completed")
-                {
-                    <option value="Completed" selected>Completed</option>
-                }
-                else
-                {
-                    <option value="Completed">Completed</option>
-                }
+                <option value="Pending" selected="@(selectedStatus == "Pending" ? "selected" : null)">Pending</option>
+                <option value="In Progress" selected="@(selectedStatus == "In Progress" ? "selected" : null)">In Progress</option>
+                <option value="Completed" selected="@(selectedStatus == "Completed" ? "selected" : null)">Completed</option>
             </select>
-
-            <!-- 🔥 EXPORT BUTTON -->
-            <button type="button" class="btn btn-success" onclick="exportExcel()">Export</button>
-
         </div>
-
     </form>
 
     <div class="card">
@@ -133,56 +97,39 @@
                 }
                 else
                 {
-                    @foreach (var item in Model)
+                    foreach (var item in Model)
                     {
                         var perms = taskPermissions != null && taskPermissions.ContainsKey(item.TaskId)
-                        ? taskPermissions[item.TaskId]
-                        : new List<string>();
+                            ? taskPermissions[item.TaskId]
+                            : new List<string>();
 
-                        bool canView = perms.Contains("ViewTask");
-                        bool canEdit = perms.Contains("EditTask");
-                        bool canDelete = perms.Contains("DeleteTask");
-
-                        var statusClass = string.IsNullOrEmpty(item.TaskStatus)
-                        ? ""
-                        : item.TaskStatus.ToLower();
+                        bool canView = isAdmin || perms.Contains("ViewTask");
+                        bool canEdit = isAdmin || perms.Contains("EditTask");
+                        bool canDelete = isAdmin || perms.Contains("DeleteTask");
 
                         <tr>
-                            <td class="task-name">@item.TaskName</td>
+                            <td>@item.TaskName</td>
                             <td>@item.TaskDescription</td>
+                            <td>@item.TaskStatus</td>
+                            <td>@item.TaskStartDate</td>
+                            <td>@item.TaskEndDate</td>
 
                             <td>
-                                <span class="status @statusClass">
-                                    @(item.TaskStatus ?? "N/A")
-                                </span>
-                            </td>
-
-                            <td>@(item.TaskStartDate?.ToString("dd MMM yyyy") ?? "-")</td>
-                            <td>@(item.TaskEndDate?.ToString("dd MMM yyyy") ?? "-")</td>
-
-                            <td>
-                                <div class="card-actions">
-                                    @if (canView)
-                                    {
-                                        <a asp-action="Details" asp-route-id="@item.TaskId" class="btn">View</a>
-                                    }
-
-                                    @if (canEdit)
-                                    {
-                                        <a asp-action="Edit" asp-route-id="@item.TaskId" class="btn">Edit</a>
-                                    }
-
-                                    @if (canDelete)
-                                    {
-                                        <form asp-action="Delete"
-                                              asp-route-id="@item.TaskId"
-                                              method="post"
-                                              style="display:inline;">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-delete">Delete</button>
-                                        </form>
-                                    }
-                                </div>
+                                @if (canView)
+                                {
+                                    <a asp-action="Details" asp-route-id="@item.TaskId" class="btn">View</a>
+                                }
+                                @if (canEdit)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@item.TaskId" class="btn">Edit</a>
+                                }
+                                @if (canDelete)
+                                {
+                                    <form asp-action="Delete" asp-route-id="@item.TaskId" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-delete">Delete</button>
+                                    </form>
+                                }
                             </td>
                         </tr>
                     }
@@ -190,59 +137,4 @@
             </tbody>
         </table>
     </div>
-
 </div>
-
-<script>
-    const projectDropdown = document.getElementById("projectId");
-    const moduleDropdown = document.getElementById("moduleId");
-    const searchInput = document.getElementById("taskSearch");
-    const filterForm = document.getElementById("filterForm");
-
-    let searchTimeout;
-
-    function submitFilters() {
-        filterForm.submit();
-    }
-
-    function exportExcel() {
-        const params = new URLSearchParams(new FormData(filterForm)).toString();
-        window.location.href = `/Task/ExportToExcel?${params}`;
-    }
-
-    projectDropdown.addEventListener("change", function () {
-        const projectId = this.value;
-
-        moduleDropdown.innerHTML = '<option value="">All Modules</option>';
-
-        if (!projectId) {
-            submitFilters();
-            return;
-        }
-
-        fetch(`/Task/GetModulesByProject?projectId=${projectId}`)
-            .then(response => response.json())
-            .then(data => {
-                data.forEach(module => {
-                    const option = document.createElement("option");
-                    option.value = module.moduleId;
-                    option.text = module.moduleName;
-                    moduleDropdown.appendChild(option);
-                });
-
-                moduleDropdown.value = "";
-                submitFilters();
-            })
-            .catch(error => {
-                console.error("Error loading modules:", error);
-                submitFilters();
-            });
-    });
-
-    moduleDropdown.addEventListener("change", submitFilters);
-
-    searchInput.addEventListener("keyup", function () {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(submitFilters, 400);
-    });
-</script>

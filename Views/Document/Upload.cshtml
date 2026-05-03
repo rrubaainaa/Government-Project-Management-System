@@ -1,0 +1,105 @@
+﻿@using GPMS.Models
+
+<link rel="stylesheet" href="~/css/site.css" />
+
+@{
+    var projects = ViewBag.Projects as List<Project>;
+}
+
+<div class="page-container">
+
+    <div class="form-card">
+
+        <h2 class="page-title">Upload Document</h2>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert-error">@TempData["Error"]</div>
+        }
+
+        <form asp-action="Upload" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+
+            <!-- ✅ PROJECT -->
+            <div class="form-group">
+                <label>Select Project</label>
+                <select id="projectDropdown" class="form-control" required>
+                    <option value="">-- Select Project --</option>
+
+                    @if (projects != null)
+                    {
+                        foreach (var p in projects)
+                        {
+                            <option value="@p.ProjectId">@p.ProjectName</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- ✅ MODULE -->
+            <div class="form-group">
+                <label>Select Module</label>
+                <select id="moduleDropdown" class="form-control" required>
+                    <option value="">-- Select Module --</option>
+                </select>
+            </div>
+
+            <!-- ✅ TASK -->
+            <div class="form-group">
+                <label>Select Task</label>
+                <select id="taskDropdown" name="taskId" class="form-control" required>
+                    <option value="">-- Select Task --</option>
+                </select>
+            </div>
+
+            <!-- FILE -->
+            <div class="form-group">
+                <label>Select File</label>
+                <input type="file"
+                       name="file"
+                       class="form-control"
+                       accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                       required />
+            </div>
+
+            <button type="submit" class="btn">Upload</button>
+            <a asp-action="Index" class="btn">Back</a>
+        </form>
+
+    </div>
+
+</div>
+
+<!-- ✅ AJAX (NEW) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    // Load Modules
+    $("#projectDropdown").change(function () {
+    var projectId = $(this).val();
+
+    $("#moduleDropdown").html('<option>Loading...</option>');
+    $("#taskDropdown").html('<option>-- Select Task --</option>');
+
+    $.get("/Document/GetModules", { projectId: projectId }, function (data) {
+    $("#moduleDropdown").html('<option value="">-- Select Module --</option>');
+    $.each(data, function (i, module) {
+    $("#moduleDropdown").append('<option value="' + module.module_id + '">' + module.module_name + '</option>');
+    });
+    });
+    });
+
+    // Load Tasks
+    $("#moduleDropdown").change(function () {
+    var moduleId = $(this).val();
+
+    $("#taskDropdown").html('<option>Loading...</option>');
+
+    $.get("/Document/GetTasks", { moduleId: moduleId }, function (data) {
+    $("#taskDropdown").html('<option value="">-- Select Task --</option>');
+    $.each(data, function (i, task) {
+    $("#taskDropdown").append('<option value="' + task.task_id + '">' + task.task_name + '</option>');
+    });
+    });
+    });
+</script>
