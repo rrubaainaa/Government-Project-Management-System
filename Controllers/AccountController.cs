@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text; // ✅ ADDED
+using System.Text;
 
 namespace GPMS.Controllers
 {
@@ -31,7 +31,6 @@ namespace GPMS.Controllers
             _emailService = emailService;
         }
 
-        // ✅ NEW: HASH TOKEN METHOD
         private string HashToken(string token)
         {
             var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
@@ -39,8 +38,9 @@ namespace GPMS.Controllers
         }
 
         // =========================================
-        // LOGIN (GET)
+        // LOGIN GET
         // =========================================
+        [HttpGet]
         public IActionResult Login()
         {
             var captcha = GenerateCaptcha();
@@ -53,7 +53,7 @@ namespace GPMS.Controllers
         }
 
         // =========================================
-        // LOGIN (POST)
+        // LOGIN POST
         // =========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -76,14 +76,12 @@ namespace GPMS.Controllers
                 return ReloadCaptcha(model);
             }
 
-            // ✅ NEW: BLOCK LOGIN IF PASSWORD NOT SET
             if (string.IsNullOrWhiteSpace(user.Epassword))
             {
                 ModelState.AddModelError("", "Please set your password using the email link.");
                 return ReloadCaptcha(model);
             }
 
-            // ✅ NEW: BLOCK LOGIN IF RESET TOKEN EXISTS
             if (!string.IsNullOrWhiteSpace(user.ResetToken))
             {
                 ModelState.AddModelError("", "Please set your password using the email link.");
@@ -153,16 +151,138 @@ namespace GPMS.Controllers
         }
 
         // =========================================
-        // CHANGE PASSWORD (GET)
+        // FORGOT PASSWORD GET
+        // =========================================
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View(new ForgotPasswordViewModel());
+        }
+
+        // =========================================
+        // FORGOT PASSWORD POST
+        // =========================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _db.Employees
+                .FirstOrDefaultAsync(e =>
+                    e.Email == model.EmailOrUsername ||
+                    e.Username == model.EmailOrUsername);
+
+            if (user != null)
+            {
+                var tokenBytes = RandomNumberGenerator.GetBytes(32);
+
+                var rawToken = Convert.ToBase64String(tokenBytes)
+                    .Replace("+", "-")
+                    .Replace("/", "_")
+                    .Replace("=", "");
+
+                var hashedToken = HashToken(rawToken);
+
+                user.ResetToken = hashedToken;
+                user.ResetTokenExpiry = DateTime.UtcNow.AddHours(24);
+
+                await _db.SaveChangesAsync();
+
+                var resetLink = Url.Action(
+                    "ResetPassword",
+                    "Account",
+                    new { token = rawToken, email = user.Email },
+                    protocol: Request.Scheme);
+
+                var body = $@"
+                    <p>Hello {user.EmployeeName},</p>
+                    <p>Click below to set/reset your password:</p>
+                    <p><a href='{resetLink}'>Set Password</a></p>
+                    <p>This link will expire in 24 hours.</p>";
+
+                await _emailService.SendEmailAsync(user.Email, "Set Your Password", body);
+            }
+
+            TempData["Success"] = "If the account exists, a reset link has been sent.";
+            return RedirectToAction("Login");
+        }
+
+        // =========================================
+        // RESET PASSWORD GET
+        // =========================================
+        [HttpGet]
+        public IActionResult ResetPassword(string token, string email)
+        {
+            if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
+            {
+                TempData["Error"] = "Invalid password reset link.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            return View(new ResetPasswordViewModel
+            {
+                Token = token,
+                Email = email
+            });
+        }
+
+        // =========================================
+        // RESET PASSWORD POST
+        // =========================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            if (!IsValidPassword(model.NewPassword))
+            {
+                ModelState.AddModelError("NewPassword",
+                    "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.");
+                return View(model);
+            }
+
+            var user = await _db.Employees
+                .FirstOrDefaultAsync(e => e.Email == model.Email);
+
+            var incomingHash = HashToken(model.Token);
+
+            if (user == null ||
+                user.ResetToken != incomingHash ||
+                !user.ResetTokenExpiry.HasValue ||
+                user.ResetTokenExpiry.Value < DateTime.UtcNow)
+            {
+                TempData["Error"] = "Invalid or expired link.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            user.Epassword = _passwordHasher.HashPassword(user, model.NewPassword);
+            user.ResetToken = null;
+            user.ResetTokenExpiry = null;
+            user.IsFirstLogin = false;
+            user.PasswordChangedAt = DateTime.Now;
+
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = "Password reset successfully. Please log in.";
+            return RedirectToAction("Login");
+        }
+
+        // =========================================
+        // CHANGE PASSWORD GET
         // =========================================
         [Authorize]
+        [HttpGet]
         public IActionResult ChangePassword()
         {
             return View(new ChangePasswordViewModel());
         }
 
         // =========================================
-        // CHANGE PASSWORD (POST)
+        // CHANGE PASSWORD POST
         // =========================================
         [Authorize]
         [HttpPost]
@@ -231,110 +351,14 @@ namespace GPMS.Controllers
             HttpContext.Session.Remove("ForcePasswordChange");
 
             TempData["Success"] = "Password changed successfully.";
-
             return RedirectToAction("Index", "Dashboard");
-        }
-
-        // =========================================
-        // FORGOT PASSWORD (POST)
-        // =========================================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
-        {
-            if (!ModelState.IsValid)
-                return View(model);
-
-            var user = await _db.Employees
-                .FirstOrDefaultAsync(e =>
-                    e.Email == model.EmailOrUsername ||
-                    e.Username == model.EmailOrUsername);
-
-            if (user != null)
-            {
-                var tokenBytes = RandomNumberGenerator.GetBytes(32);
-
-                // ✅ RAW TOKEN
-                var rawToken = Convert.ToBase64String(tokenBytes)
-                    .Replace("+", "-")
-                    .Replace("/", "_")
-                    .Replace("=", "");
-
-                // ✅ HASH TOKEN
-                var hashedToken = HashToken(rawToken);
-
-                user.ResetToken = hashedToken;
-                user.ResetTokenExpiry = DateTime.UtcNow.AddHours(24); // ✅ UPDATED
-
-                await _db.SaveChangesAsync();
-
-                var resetLink = Url.Action(
-                    "ResetPassword",
-                    "Account",
-                    new { token = rawToken, email = user.Email },
-                    protocol: Request.Scheme);
-
-                var body = $@"
-                    <p>Hello {user.EmployeeName},</p>
-                    <p>Click below to set/reset your password:</p>
-                    <p><a href='{resetLink}'>Set Password</a></p>
-                    <p>This link will expire in 24 hours.</p>";
-
-                await _emailService.SendEmailAsync(user.Email, "Set Your Password", body);
-            }
-
-            TempData["Success"] = "If the account exists, a reset link has been sent.";
-            return RedirectToAction("Login");
-        }
-
-        // =========================================
-        // RESET PASSWORD (POST)
-        // =========================================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
-        {
-            if (!ModelState.IsValid)
-                return View(model);
-
-            if (!IsValidPassword(model.NewPassword))
-            {
-                ModelState.AddModelError("NewPassword",
-                    "Password must meet complexity requirements.");
-                return View(model);
-            }
-
-            var user = await _db.Employees
-                .FirstOrDefaultAsync(e => e.Email == model.Email);
-
-            // ✅ HASH INCOMING TOKEN
-            var incomingHash = HashToken(model.Token);
-
-            if (user == null ||
-                user.ResetToken != incomingHash ||
-                !user.ResetTokenExpiry.HasValue ||
-                user.ResetTokenExpiry.Value < DateTime.UtcNow)
-            {
-                TempData["Error"] = "Invalid or expired link.";
-                return RedirectToAction("ForgotPassword");
-            }
-
-            user.Epassword = _passwordHasher.HashPassword(user, model.NewPassword);
-            user.ResetToken = null;
-            user.ResetTokenExpiry = null;
-            user.IsFirstLogin = false;
-            user.PasswordChangedAt = DateTime.Now;
-
-            await _db.SaveChangesAsync();
-
-            TempData["Success"] = "Password reset successfully. Please log in.";
-            return RedirectToAction("Login");
         }
 
         // =========================================
         // LOGOUT
         // =========================================
         [Authorize]
+        [HttpGet]
         public async Task<IActionResult> Logout()
         {
             HttpContext.Session.Clear();
@@ -360,8 +384,10 @@ namespace GPMS.Controllers
         {
             const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789abcdefghjklmnpqrstuvwxyz";
             var random = new Random();
+
             return new string(Enumerable.Repeat(chars, 5)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+                .Select(s => s[random.Next(s.Length)])
+                .ToArray());
         }
 
         private bool IsValidPassword(string password)
