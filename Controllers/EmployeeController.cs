@@ -8,9 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Security.Cryptography;
-
-// ✅ ALIAS to avoid conflict
-using TaskModel = GPMS.Models.Task;
+using System.Text;
 
 namespace GPMS.Controllers
 {
@@ -44,6 +42,12 @@ namespace GPMS.Controllers
             return int.Parse(claim.Value);
         }
 
+        private string HashToken(string token)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+            return Convert.ToBase64String(bytes);
+        }
+
         public async Task<IActionResult> Index(string search)
         {
             var employeeId = GetEmployeeId();
@@ -70,6 +74,7 @@ namespace GPMS.Controllers
             return View(await employees.ToListAsync());
         }
 
+        [HttpGet]
         public async Task<IActionResult> Create()
         {
             var employeeId = GetEmployeeId();
@@ -92,53 +97,28 @@ namespace GPMS.Controllers
 
             if (ModelState.IsValid)
             {
-                // ✅ DUPLICATE CHECKS
-                if (await _context.Employees.AnyAsync(e => e.Username == employee.Username))
-                {
-                    ModelState.AddModelError("Username", "Username already exists.");
-                    await LoadDesignations();
-                    return View(employee);
-                }
-
-                if (await _context.Employees.AnyAsync(e => e.Email == employee.Email))
-                {
-                    ModelState.AddModelError("Email", "Email already exists.");
-                    await LoadDesignations();
-                    return View(employee);
-                }
-
-                // ✅ GENERATE RESET TOKEN
                 var tokenBytes = RandomNumberGenerator.GetBytes(32);
-                var token = Convert.ToBase64String(tokenBytes)
+
+                var rawToken = Convert.ToBase64String(tokenBytes)
                     .Replace("+", "-")
                     .Replace("/", "_")
                     .Replace("=", "");
 
-                employee.ResetToken = token;
+                employee.ResetToken = HashToken(rawToken);
                 employee.ResetTokenExpiry = DateTime.UtcNow.AddHours(24);
 
                 employee.Epassword = null;
                 employee.IsFirstLogin = true;
                 employee.PasswordChangedAt = null;
 
-                try
-                {
-                    _context.Add(employee);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateException ex)
-                {
-                    if (ex.InnerException?.Message.Contains("UNIQUE") == true)
-                    {
-                        ModelState.AddModelError("", "Username or Email already exists.");
-                        await LoadDesignations();
-                        return View(employee);
-                    }
-                    throw;
-                }
+                _context.Add(employee);
+                await _context.SaveChangesAsync();
 
-                // ✅ SEND EMAIL
-                var resetLink = $"{Request.Scheme}://{Request.Host}/Account/ResetPassword?token={token}&email={employee.Email}";
+                var resetLink = Url.Action(
+                    "ResetPassword",
+                    "Account",
+                    new { token = rawToken, email = employee.Email },
+                    protocol: Request.Scheme);
 
                 var body = $@"
                     <p>Hello {employee.EmployeeName},</p>
@@ -161,6 +141,7 @@ namespace GPMS.Controllers
             return View(employee);
         }
 
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var employeeId = GetEmployeeId();
@@ -191,47 +172,21 @@ namespace GPMS.Controllers
 
             if (ModelState.IsValid)
             {
-                // ✅ DUPLICATE CHECKS (exclude current record)
-                if (await _context.Employees.AnyAsync(e => e.Username == emp.Username && e.EmployeeId != id))
-                {
-                    ModelState.AddModelError("Username", "Username already exists.");
-                    await LoadDesignations();
-                    return View(emp);
-                }
+                var existing = await _context.Employees.FindAsync(id);
 
-                if (await _context.Employees.AnyAsync(e => e.Email == emp.Email && e.EmployeeId != id))
-                {
-                    ModelState.AddModelError("Email", "Email already exists.");
-                    await LoadDesignations();
-                    return View(emp);
-                }
+                if (existing == null)
+                    return NotFound();
 
-                try
-                {
-                    var existing = await _context.Employees.FindAsync(id);
+                existing.EmployeeName = emp.EmployeeName;
+                existing.Email = emp.Email;
+                existing.Username = emp.Username;
+                existing.DesignationId = emp.DesignationId;
+                existing.SystemRole = emp.SystemRole;
+                existing.IsAdmin = emp.IsAdmin;
 
-                    if (existing == null)
-                        return NotFound();
+                await _context.SaveChangesAsync();
 
-                    existing.EmployeeName = emp.EmployeeName;
-                    existing.Email = emp.Email;
-                    existing.Username = emp.Username;
-                    existing.DesignationId = emp.DesignationId;
-                    existing.SystemRole = emp.SystemRole;
-                    existing.IsAdmin = emp.IsAdmin;
-
-                    await _context.SaveChangesAsync();
-
-                    TempData["Success"] = "Employee updated successfully.";
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!_context.Employees.Any(e => e.EmployeeId == emp.EmployeeId))
-                        return NotFound();
-                    else
-                        throw;
-                }
-
+                TempData["Success"] = "Employee updated successfully.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -259,13 +214,30 @@ namespace GPMS.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            bool assignedToProject = await _context.Assignments.AnyAsync(a => a.EmployeeId == id && a.ProjectId != null);
-            bool assignedToModule = await _context.Assignments.AnyAsync(a => a.EmployeeId == id && a.ModuleId != null);
-            bool assignedToTask = await _context.Assignments.AnyAsync(a => a.EmployeeId == id && a.TaskId != null);
+            bool assignedToProject = await _context.Assignments
+                .AnyAsync(a => a.EmployeeId == id && a.ProjectId != null);
 
-            if (assignedToProject || assignedToModule || assignedToTask)
+            bool assignedToModule = await _context.Assignments
+                .AnyAsync(a => a.EmployeeId == id && a.ModuleId != null);
+
+            bool assignedToTask = await _context.Assignments
+                .AnyAsync(a => a.EmployeeId == id && a.TaskId != null);
+
+            if (assignedToProject)
             {
-                TempData["Error"] = "Cannot delete employee. Assigned to project/module/task.";
+                TempData["Error"] = "Cannot delete employee. Assigned to a project.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (assignedToModule)
+            {
+                TempData["Error"] = "Cannot delete employee. Assigned to a module.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (assignedToTask)
+            {
+                TempData["Error"] = "Cannot delete employee. Assigned to a task.";
                 return RedirectToAction(nameof(Index));
             }
 
