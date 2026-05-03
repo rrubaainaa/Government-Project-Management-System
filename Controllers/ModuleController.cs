@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 using System.Security.Claims;
 
 namespace GPMS.Controllers
@@ -33,6 +34,99 @@ namespace GPMS.Controllers
                 throw new Exception("User not logged in");
 
             return int.Parse(claim.Value);
+        }
+
+        // =========================================
+        // 🔥 EXPORT TO EXCEL (MODULE) - FIXED
+        // =========================================
+        [HttpGet]
+        public async Task<IActionResult> ExportToExcel(DateTime? startDate, DateTime? endDate, string status)
+        {
+            var employeeId = GetEmployeeId();
+
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
+
+            var query = _context.Modules
+                .Include(m => m.Project)
+                .Include(m => m.Tasks)
+                .AsQueryable();
+
+            // ✅ FIX: DateTime → DateOnly
+            DateOnly? start = startDate.HasValue ? DateOnly.FromDateTime(startDate.Value) : null;
+            DateOnly? end = endDate.HasValue ? DateOnly.FromDateTime(endDate.Value) : null;
+
+            if (start.HasValue)
+                query = query.Where(m => m.ModuleStartDate >= start.Value);
+
+            if (end.HasValue)
+                query = query.Where(m => m.ModuleEndDate.HasValue && m.ModuleEndDate.Value <= end.Value);
+
+            if (!string.IsNullOrEmpty(status))
+                query = query.Where(m => m.ModuleStatus == status);
+
+            var allModules = await query.ToListAsync();
+            var filteredModules = new List<Module>();
+
+            foreach (var m in allModules)
+            {
+                bool isAssigned = await _context.Assignments
+                    .AnyAsync(a => a.EmployeeId == employeeId && a.ProjectId == m.ProjectId);
+
+                bool canView = await _permissionService
+                    .HasPermission(employeeId, m.ModuleId, "ViewModule");
+
+                if (employee.IsAdmin || (isAssigned && canView))
+                {
+                    filteredModules.Add(m);
+                }
+            }
+
+            // ✅ Excel generation
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using var package = new ExcelPackage();
+            var worksheet = package.Workbook.Worksheets.Add("Modules");
+
+            worksheet.Cells[1, 1].Value = "Module Name";
+            worksheet.Cells[1, 2].Value = "Project";
+            worksheet.Cells[1, 3].Value = "Status";
+            worksheet.Cells[1, 4].Value = "Start Date";
+            worksheet.Cells[1, 5].Value = "End Date";
+            worksheet.Cells[1, 6].Value = "Tasks Count";
+
+            int row = 2;
+
+            foreach (var m in filteredModules)
+            {
+                worksheet.Cells[row, 1].Value = m.ModuleName;
+                worksheet.Cells[row, 2].Value = m.Project?.ProjectName;
+                worksheet.Cells[row, 3].Value = m.ModuleStatus;
+                worksheet.Cells[row, 4].Value = m.ModuleStartDate.HasValue
+    ? m.ModuleStartDate.Value.ToString("yyyy-MM-dd")
+    : "";
+
+                // ✅ nullable DateOnly
+                worksheet.Cells[row, 5].Value = m.ModuleEndDate.HasValue
+                    ? m.ModuleEndDate.Value.ToString("yyyy-MM-dd")
+                    : "";
+
+                worksheet.Cells[row, 6].Value = m.Tasks?.Count ?? 0;
+
+                row++;
+            }
+
+            worksheet.Cells.AutoFitColumns();
+
+            var stream = new MemoryStream();
+            package.SaveAs(stream);
+            stream.Position = 0;
+
+            string fileName = $"Modules_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+
+            return File(stream,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName);
         }
 
         // =========================================

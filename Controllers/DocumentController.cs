@@ -117,14 +117,13 @@ namespace GPMS.Controllers
             if (employee == null)
                 return Unauthorized();
 
-            // ✅ Load projects (FIXED)
+            // ✅ Admin can see all projects (already correct)
             ViewBag.Projects = await _context.Projects.ToListAsync();
 
             return View();
         }
 
         // ===================== AJAX =====================
-
         public async Task<JsonResult> GetModules(int projectId)
         {
             var modules = await _context.Modules
@@ -172,13 +171,12 @@ namespace GPMS.Controllers
                 return RedirectToAction(nameof(Upload));
             }
 
-            // ✅ Get Task → Module → Project (FIXED)
             var task = await _context.Tasks
                 .Include(t => t.Module)
                 .ThenInclude(m => m.Project)
                 .FirstOrDefaultAsync(t => t.TaskId == taskId);
 
-            if (task == null || task.Module == null)
+            if (task == null)
             {
                 TempData["Error"] = "Invalid task.";
                 return RedirectToAction(nameof(Upload));
@@ -186,6 +184,7 @@ namespace GPMS.Controllers
 
             int projectId = task.Module.ProjectId;
 
+            // ✅ Permission only (NO assignment)
             bool canUpload = employee.IsAdmin ||
                              await _permissionService.HasPermission(
                                  employeeId,
@@ -195,18 +194,6 @@ namespace GPMS.Controllers
 
             if (!canUpload)
                 return Forbid();
-
-            // ✅ Ensure assignment exists
-            var assignment = await _context.Assignments
-                .FirstOrDefaultAsync(a =>
-                    a.TaskId == taskId &&
-                    a.EmployeeId == employeeId);
-
-            if (assignment == null)
-            {
-                TempData["Error"] = "You are not assigned to this task.";
-                return RedirectToAction(nameof(Upload));
-            }
 
             // ✅ File validation
             var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".png", ".jpg", ".jpeg" };
@@ -231,9 +218,10 @@ namespace GPMS.Controllers
                 await file.CopyToAsync(stream);
             }
 
+            // ✅ SAVE WITHOUT ASSIGNMENT
             var document = new Document
             {
-                AssignmentId = assignment.AssignmentId,
+                TaskId = taskId,
                 DocumentName = Path.GetFileName(file.FileName),
                 FilePath = $"/uploads/documents/{uniqueFileName}",
                 UploadedAt = DateTime.Now,

@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 using System.Security.Claims;
 
+// ALIAS
 using TaskModel = GPMS.Models.Task;
 
 namespace GPMS.Controllers
@@ -33,14 +35,153 @@ namespace GPMS.Controllers
         }
 
         // =========================================
-        // 🔥 INDEX (FIXED)
+        // 🔥 EXPORT TO EXCEL (TASK) - FIXED
         // =========================================
-        public async Task<IActionResult> Index(int? projectId, int? moduleId, string search)
+        [HttpGet]
+        public async Task<IActionResult> ExportToExcel(
+            int? projectId,
+            int? moduleId,
+            string search,
+            DateTime? startDate,
+            DateTime? endDate,
+            string status)
         {
             var employeeId = GetEmployeeId();
 
             var employee = await _context.Employees
                 .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
+
+            var allTasks = await _context.Tasks
+                .Include(t => t.Module)
+                    .ThenInclude(m => m.Project)
+                .ToListAsync();
+
+            var filteredTasks = new List<TaskModel>();
+
+            foreach (var t in allTasks)
+            {
+                var projId = t.Module.ProjectId;
+
+                bool isAssigned = await _context.Assignments
+                    .AnyAsync(a => a.EmployeeId == employeeId && a.ProjectId == projId);
+
+                bool canView = await _permissionService
+                    .HasPermission(employeeId, projId, "ViewTask");
+
+                if (employee.IsAdmin || (isAssigned && canView))
+                {
+                    bool match = true;
+
+                    // ✅ Date filter (DateOnly fix)
+                    if (startDate.HasValue)
+                    {
+                        var start = DateOnly.FromDateTime(startDate.Value);
+                        if (t.TaskStartDate.HasValue && t.TaskStartDate.Value < start)
+                            match = false;
+                    }
+
+                    if (endDate.HasValue)
+                    {
+                        var end = DateOnly.FromDateTime(endDate.Value);
+                        if (t.TaskEndDate.HasValue && t.TaskEndDate.Value > end)
+                            match = false;
+                    }
+
+                    // STATUS
+                    if (!string.IsNullOrEmpty(status) && t.TaskStatus != status)
+                        match = false;
+
+                    if (match)
+                        filteredTasks.Add(t);
+                }
+            }
+
+            // BASIC FILTERS
+            if (projectId.HasValue)
+                filteredTasks = filteredTasks.Where(t => t.Module.ProjectId == projectId.Value).ToList();
+
+            if (moduleId.HasValue)
+                filteredTasks = filteredTasks.Where(t => t.ModuleId == moduleId.Value).ToList();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+                filteredTasks = filteredTasks.Where(t =>
+                    t.TaskName.Contains(search) ||
+                    (t.TaskDescription != null && t.TaskDescription.Contains(search)) ||
+                    (t.TaskStatus != null && t.TaskStatus.Contains(search)) ||
+                    (t.Module != null && t.Module.ModuleName.Contains(search))
+                ).ToList();
+            }
+
+            // ✅ Excel generation
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using var package = new ExcelPackage();
+            var worksheet = package.Workbook.Worksheets.Add("Tasks");
+
+            worksheet.Cells[1, 1].Value = "Task Name";
+            worksheet.Cells[1, 2].Value = "Description";
+            worksheet.Cells[1, 3].Value = "Status";
+            worksheet.Cells[1, 4].Value = "Start Date";
+            worksheet.Cells[1, 5].Value = "End Date";
+            worksheet.Cells[1, 6].Value = "Module";
+            worksheet.Cells[1, 7].Value = "Project";
+
+            int row = 2;
+
+            foreach (var t in filteredTasks)
+            {
+                worksheet.Cells[row, 1].Value = t.TaskName;
+                worksheet.Cells[row, 2].Value = t.TaskDescription;
+                worksheet.Cells[row, 3].Value = t.TaskStatus;
+
+                // ✅ DateOnly? fix
+                worksheet.Cells[row, 4].Value = t.TaskStartDate.HasValue
+                    ? t.TaskStartDate.Value.ToString("yyyy-MM-dd")
+                    : "";
+
+                worksheet.Cells[row, 5].Value = t.TaskEndDate.HasValue
+                    ? t.TaskEndDate.Value.ToString("yyyy-MM-dd")
+                    : "";
+
+                worksheet.Cells[row, 6].Value = t.Module?.ModuleName;
+                worksheet.Cells[row, 7].Value = t.Module?.Project?.ProjectName;
+
+                row++;
+            }
+
+            worksheet.Cells.AutoFitColumns();
+
+            var stream = new MemoryStream();
+            package.SaveAs(stream);
+            stream.Position = 0;
+
+            string fileName = $"Tasks_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+
+            return File(stream,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName);
+        }
+
+        // =========================================
+        // 🔥 FULL INDEX (MERGED)
+        // =========================================
+        public async Task<IActionResult> Index(
+            int? projectId,
+            int? moduleId,
+            string search,
+            DateTime? startDate,
+            DateTime? endDate,
+            string status)
+        {
+            var employeeId = GetEmployeeId();
+
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
+
+            if (employee == null)
+                return Unauthorized();
 
             var allTasks = await _context.Tasks
                 .Include(t => t.Module)
@@ -61,27 +202,60 @@ namespace GPMS.Controllers
 
                 if (employee.IsAdmin || (isAssigned && canView))
                 {
-                    filteredTasks.Add(t);
+                    bool match = true;
 
-                    var perms = await _permissionService.GetPermissions(employeeId, t.TaskId);
-                    taskPermissions[t.TaskId] = perms;
+                    // DATE FILTER
+                    if (startDate.HasValue)
+                    {
+                        var start = DateOnly.FromDateTime(startDate.Value);
+                        if (t.TaskStartDate.HasValue && t.TaskStartDate.Value < start)
+                            match = false;
+                    }
+
+                    if (endDate.HasValue)
+                    {
+                        var end = DateOnly.FromDateTime(endDate.Value);
+                        if (t.TaskEndDate.HasValue && t.TaskEndDate.Value > end)
+                            match = false;
+                    }
+
+                    // STATUS FILTER
+                    if (!string.IsNullOrEmpty(status) && t.TaskStatus != status)
+                        match = false;
+
+                    if (match)
+                    {
+                        filteredTasks.Add(t);
+
+                        // ✅ FIX: use TaskId permissions (second code)
+                        var perms = await _permissionService.GetPermissions(employeeId, t.TaskId);
+                        taskPermissions[t.TaskId] = perms;
+                    }
                 }
             }
 
-            // Filters
+            // BASIC FILTERS
             if (projectId.HasValue)
-                filteredTasks = filteredTasks.Where(t => t.Module.ProjectId == projectId).ToList();
+                filteredTasks = filteredTasks.Where(t => t.Module.ProjectId == projectId.Value).ToList();
 
             if (moduleId.HasValue)
-                filteredTasks = filteredTasks.Where(t => t.ModuleId == moduleId).ToList();
+                filteredTasks = filteredTasks.Where(t => t.ModuleId == moduleId.Value).ToList();
 
-            if (!string.IsNullOrEmpty(search))
-                filteredTasks = filteredTasks.Where(t => t.TaskName.Contains(search)).ToList();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+                filteredTasks = filteredTasks.Where(t =>
+                    t.TaskName.Contains(search) ||
+                    (t.TaskDescription != null && t.TaskDescription.Contains(search)) ||
+                    (t.TaskStatus != null && t.TaskStatus.Contains(search)) ||
+                    (t.Module != null && t.Module.ModuleName.Contains(search))
+                ).ToList();
+            }
 
             ViewBag.TaskPermissions = taskPermissions;
             ViewBag.IsAdmin = employee.IsAdmin;
 
-            // ✅ FIX: Use List<SelectListItem> instead of SelectList
+            // ✅ DROPDOWNS FIXED (second code)
             ViewBag.Projects = await _context.Projects
                 .Select(p => new SelectListItem
                 {
@@ -96,11 +270,19 @@ namespace GPMS.Controllers
                     Text = m.ModuleName
                 }).ToListAsync();
 
+            // KEEP FILTER VALUES
+            ViewBag.SelectedProjectId = projectId;
+            ViewBag.SelectedModuleId = moduleId;
+            ViewBag.Search = search;
+            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
+            ViewBag.Status = status;
+
             return View(filteredTasks);
         }
 
         // =========================================
-        // 🔥 DETAILS (UNCHANGED)
+        // DETAILS
         // =========================================
         public async Task<IActionResult> Details(int id)
         {
@@ -118,8 +300,7 @@ namespace GPMS.Controllers
 
             var projectId = task.Module.ProjectId;
 
-            var employee = await _context.Employees
-                .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
+            var employee = await _context.Employees.FindAsync(employeeId);
 
             bool isAssigned = await _context.Assignments
                 .AnyAsync(a => a.EmployeeId == employeeId && a.ProjectId == projectId);
@@ -150,7 +331,7 @@ namespace GPMS.Controllers
         }
 
         // =========================================
-        // 🔥 EDIT (FIXED)
+        // EDIT
         // =========================================
         public async Task<IActionResult> Edit(int id)
         {
@@ -199,9 +380,8 @@ namespace GPMS.Controllers
             return View(task);
         }
 
-
         // =========================================
-        // 🔥 DELETE (FIXED)
+        // DELETE
         // =========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -229,7 +409,6 @@ namespace GPMS.Controllers
             TempData["Success"] = "Task deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
-
 
         // =========================================
         // AJAX

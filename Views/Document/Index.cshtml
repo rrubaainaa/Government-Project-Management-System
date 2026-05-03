@@ -51,45 +51,45 @@
 
         .doc-table tbody tr {
             border-bottom: 1px solid #eee;
-            transition: 0.2s;
         }
 
+            /* ❌ REMOVE TEAL HOVER COMPLETELY */
             .doc-table tbody tr:hover {
-                background-color: var(--primary-light);
+                background-color: transparent !important;
             }
 
-    .btn {
-        background-color: var(--primary);
-        color: white;
-        padding: 6px 12px;
+    /* 🔵 VIEW BUTTON */
+    .btn-outline {
+        background: white;
+        border: 1.5px solid #3b82f6;
+        color: #3b82f6;
+        padding: 6px 14px;
         border-radius: 6px;
         text-decoration: none;
-        border: none;
+        transition: 0.2s;
+        font-size: 14px;
+        margin-right: 6px;
+    }
+
+        .btn-outline:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+    /* 🔴 DELETE BUTTON (outline style) */
+    .btn-delete {
+        background: white;
+        border: 1.5px solid #ef4444;
+        color: #ef4444;
+        padding: 6px 14px;
+        border-radius: 6px;
         transition: 0.2s;
         font-size: 14px;
     }
 
-        .btn:hover {
-            background-color: var(--primary-dark);
-        }
-
-    .btn-outline {
-        background: transparent;
-        border: 1px solid var(--primary);
-        color: var(--primary);
-    }
-
-        .btn-outline:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-    .btn-delete {
-        background-color: #ef4444;
-    }
-
         .btn-delete:hover {
-            background-color: #dc2626;
+            background: #ef4444;
+            color: white;
         }
 
     .no-data {
@@ -169,7 +169,6 @@
         <thead>
             <tr>
                 <th>Document Name</th>
-                <th>Assignment ID</th>
                 <th>Uploaded At</th>
                 <th>Uploaded By</th>
                 <th style="width:220px;">Actions</th>
@@ -180,7 +179,7 @@
             @if (!Model.Any())
             {
                 <tr>
-                    <td colspan="5" class="no-data">No documents found</td>
+                    <td colspan="4" class="no-data">No documents found</td>
                 </tr>
             }
             else
@@ -189,21 +188,14 @@
                 {
                     <tr>
                         <td>@item.DocumentName</td>
-                        <td>@(item.AssignmentId?.ToString() ?? "-")</td>
                         <td>@item.UploadedAt.ToString("dd MMM yyyy hh:mm tt")</td>
                         <td>@(item.UploadedByEmployee?.EmployeeName ?? "-")</td>
 
                         <td>
                             <a asp-action="Download"
                                    asp-route-id="@item.DocumentId"
-                                   class="btn btn-outline">
+                                   class="btn-outline">
                                 View
-                            </a>
-
-                            <a asp-action="Edit"
-                                   asp-route-id="@item.DocumentId"
-                                   class="btn btn-outline">
-                                Edit
                             </a>
 
                             <form asp-action="Delete"
@@ -214,7 +206,7 @@
 
                                 @Html.AntiForgeryToken()
 
-                                <button type="submit" class="btn btn-delete">
+                                <button type="submit" class="btn-delete">
                                     Delete
                                 </button>
                             </form>

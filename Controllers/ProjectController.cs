@@ -37,6 +37,96 @@ namespace GPMS.Controllers
         }
 
         // =========================================
+        // 🔥 EXPORT TO EXCEL (FIXED)
+        // =========================================
+        [HttpGet]
+        public async Task<IActionResult> ExportToExcel(DateTime? startDate, DateTime? endDate, string status)
+        {
+            var employeeId = GetEmployeeId();
+
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(e => e.EmployeeId == employeeId);
+
+            var query = _context.Projects
+                .Include(p => p.Modules)
+                .AsQueryable();
+
+            // ✅ FIX: Convert DateTime → DateOnly
+            DateOnly? start = startDate.HasValue ? DateOnly.FromDateTime(startDate.Value) : null;
+            DateOnly? end = endDate.HasValue ? DateOnly.FromDateTime(endDate.Value) : null;
+
+            if (start.HasValue)
+                query = query.Where(p => p.ProjectStartDate >= start.Value);
+
+            if (end.HasValue)
+                query = query.Where(p => p.ProjectEndDate.HasValue && p.ProjectEndDate.Value <= end.Value);
+
+            if (!string.IsNullOrEmpty(status))
+                query = query.Where(p => p.ProjectStatus == status);
+
+            var allProjects = await query.ToListAsync();
+            var filteredProjects = new List<Project>();
+
+            foreach (var p in allProjects)
+            {
+                bool isAssigned = await _context.Assignments
+                    .AnyAsync(a => a.EmployeeId == employeeId && a.ProjectId == p.ProjectId);
+
+                bool canView = await _permissionService
+                    .HasPermission(employeeId, p.ProjectId, "ViewProject");
+
+                if (employee.IsAdmin || (isAssigned && canView))
+                {
+                    filteredProjects.Add(p);
+                }
+            }
+
+            // ✅ Excel generation
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using var package = new ExcelPackage();
+            var worksheet = package.Workbook.Worksheets.Add("Projects");
+
+            worksheet.Cells[1, 1].Value = "Project Name";
+            worksheet.Cells[1, 2].Value = "Details";
+            worksheet.Cells[1, 3].Value = "Status";
+            worksheet.Cells[1, 4].Value = "Start Date";
+            worksheet.Cells[1, 5].Value = "End Date";
+            worksheet.Cells[1, 6].Value = "Modules Count";
+
+            int row = 2;
+
+            foreach (var p in filteredProjects)
+            {
+                worksheet.Cells[row, 1].Value = p.ProjectName;
+                worksheet.Cells[row, 2].Value = p.ProjectDetails;
+                worksheet.Cells[row, 3].Value = p.ProjectStatus;
+                worksheet.Cells[row, 4].Value = p.ProjectStartDate.ToString("yyyy-MM-dd");
+
+                // ✅ FIX: nullable DateOnly
+                worksheet.Cells[row, 5].Value = p.ProjectEndDate.HasValue
+                    ? p.ProjectEndDate.Value.ToString("yyyy-MM-dd")
+                    : "";
+
+                worksheet.Cells[row, 6].Value = p.Modules?.Count ?? 0;
+
+                row++;
+            }
+
+            worksheet.Cells.AutoFitColumns();
+
+            var stream = new MemoryStream();
+            package.SaveAs(stream);
+            stream.Position = 0;
+
+            string fileName = $"Projects_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+
+            return File(stream,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName);
+        }
+
+        // =========================================
         // 🔥 DETAILS (FIXED)
         // =========================================
         public async Task<IActionResult> Details(int id)

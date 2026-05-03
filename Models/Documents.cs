@@ -12,11 +12,10 @@ namespace GPMS.Models
         [Column("document_id")]
         public int DocumentId { get; set; }
 
-        // ✅ Keep Assignment (important for permissions)
+        // ✅ OPTIONAL (no longer required for upload)
         [Column("assignment_id")]
         public int? AssignmentId { get; set; }
 
-        // ✅ Allow flexibility (avoid crash)
         [Column("document_name")]
         [StringLength(100)]
         [Unicode(false)]
@@ -27,7 +26,6 @@ namespace GPMS.Models
         [Unicode(false)]
         public string? FilePath { get; set; }
 
-        // ✅ Default value to avoid null issues
         [Column("uploaded_at")]
         public DateTime UploadedAt { get; set; } = DateTime.Now;
 
@@ -35,8 +33,10 @@ namespace GPMS.Models
         public int? UploadedBy { get; set; }
 
         // =========================
-        // 🔹 NEW HIERARCHY SUPPORT
+        // 🔹 HIERARCHY SUPPORT
         // =========================
+
+        // ✅ These are now PRIMARY references (used instead of assignment)
 
         [Column("project_id")]
         public int? ProjectId { get; set; }
@@ -51,20 +51,20 @@ namespace GPMS.Models
         // 🔹 NAVIGATION PROPERTIES
         // =========================
 
-        [ForeignKey("AssignmentId")]
+        [ForeignKey(nameof(AssignmentId))]
         public virtual Assignment? Assignment { get; set; }
 
-        [ForeignKey("UploadedBy")]
+        [ForeignKey(nameof(UploadedBy))]
         public virtual Employee? UploadedByEmployee { get; set; }
 
-        [ForeignKey("ProjectId")]
+        [ForeignKey(nameof(ProjectId))]
         public virtual Project? Project { get; set; }
 
-        [ForeignKey("ModuleId")]
+        [ForeignKey(nameof(ModuleId))]
         public virtual Module? Module { get; set; }
 
-        // ⚠️ FIX: Avoid conflict with System.Threading.Tasks.Task
-        [ForeignKey("TaskId")]
+        // ✅ FIX: Explicit type to avoid Task conflict
+        [ForeignKey(nameof(TaskId))]
         public virtual GPMS.Models.Task? Task { get; set; }
     }
 }

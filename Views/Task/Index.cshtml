@@ -22,57 +22,84 @@
 
     <form method="get" asp-action="Index" id="filterForm">
 
+        <!-- 🔹 ROW 1 -->
         <div class="search-bar" style="display:flex; gap:10px; margin-bottom:10px;">
 
-            <!-- ✅ PROJECT DROPDOWN (FIXED) -->
             <select id="projectId" name="projectId" class="form-control">
                 <option value="">All Projects</option>
-                @if (ViewBag.Projects != null)
+                @foreach (var p in ViewBag.Projects)
                 {
-                    foreach (var p in ViewBag.Projects as List<SelectListItem>)
+                    if (selectedProjectId == p.Value)
                     {
-                        var selected = selectedProjectId == p.Value;
-
-                        <option value="@p.Value" selected="@(selected ? "selected" : null)">
-                            @p.Text
-                        </option>
+                        <option value="@p.Value" selected>@p.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@p.Value">@p.Text</option>
                     }
                 }
             </select>
 
-            <!-- ✅ MODULE DROPDOWN (FIXED SAME WAY) -->
             <select id="moduleId" name="moduleId" class="form-control">
                 <option value="">All Modules</option>
-                @if (ViewBag.Modules != null)
+                @foreach (var m in ViewBag.Modules)
                 {
-                    foreach (var m in ViewBag.Modules as List<SelectListItem>)
+                    if (selectedModuleId == m.Value)
                     {
-                        var selected = selectedModuleId == m.Value;
-
-                        <option value="@m.Value" selected="@(selected ? "selected" : null)">
-                            @m.Text
-                        </option>
+                        <option value="@m.Value" selected>@m.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@m.Value">@m.Text</option>
                     }
                 }
             </select>
 
-            <input type="text" name="search" class="form-control"
-                   placeholder="Search task..." value="@searchText" />
+            <input type="text"
+                   id="taskSearch"
+                   name="search"
+                   class="form-control"
+                   placeholder="Search task..."
+                   value="@searchText" />
 
+            <!-- 🔥 SEARCH BUTTON -->
             <button type="submit" class="btn btn-primary-custom">Search</button>
+
         </div>
 
+        <!-- 🔹 ROW 2 -->
         <div class="search-bar" style="display:flex; gap:10px;">
+
             <input type="date" name="startDate" class="form-control" value="@startDate" />
             <input type="date" name="endDate" class="form-control" value="@endDate" />
 
             <select name="status" class="form-control">
                 <option value="">All Status</option>
-                <option value="Pending" selected="@(selectedStatus == "Pending" ? "selected" : null)">Pending</option>
-                <option value="In Progress" selected="@(selectedStatus == "In Progress" ? "selected" : null)">In Progress</option>
-                <option value="Completed" selected="@(selectedStatus == "Completed" ? "selected" : null)">Completed</option>
+
+                @if (selectedStatus == "Ongoing")
+                {
+                    <option value="Ongoing" selected>Ongoing</option>
+                }
+                else
+                {
+                    <option value="Ongoing">Ongoing</option>
+                }
+
+                @if (selectedStatus == "Completed")
+                {
+                    <option value="Completed" selected>Completed</option>
+                }
+                else
+                {
+                    <option value="Completed">Completed</option>
+                }
             </select>
+
+            <!-- 🔥 EXPORT BUTTON -->
+            <button type="button" class="btn btn-success" onclick="exportExcel()">Export</button>
+
         </div>
+
     </form>
 
     <div class="card">
@@ -138,3 +165,18 @@
         </table>
     </div>
 </div>
+
+<script>
+    function exportExcel() {
+        const projectId = document.getElementById("projectId").value;
+        const moduleId = document.getElementById("moduleId").value;
+        const search = document.getElementById("taskSearch").value;
+        const startDate = document.querySelector('[name="startDate"]').value;
+        const endDate = document.querySelector('[name="endDate"]').value;
+        const status = document.querySelector('[name="status"]').value;
+
+        const url = `/Task/ExportToExcel?projectId=${projectId}&moduleId=${moduleId}&search=${encodeURIComponent(search)}&startDate=${startDate}&endDate=${endDate}&status=${status}`;
+
+        window.location.href = url;
+    }
+</script>
