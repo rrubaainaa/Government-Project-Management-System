@@ -266,6 +266,36 @@ namespace GPMS.Controllers
             return View();
         }
 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Module module)
+        {
+            var employeeId = GetEmployeeId();
+
+            var employee = await _context.Employees.FindAsync(employeeId);
+
+            // 🔐 Permission check
+            if (!employee.IsAdmin &&
+                !await _permissionService.HasPermission(employeeId, null, "CreateModule"))
+                return Forbid();
+
+            if (ModelState.IsValid)
+            {
+                _context.Modules.Add(module);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = "Module created successfully.";
+
+                return RedirectToAction("Details", "Project", new { id = module.ProjectId });
+            }
+
+            // 🔁 Reload dropdown if validation fails
+            var projects = await _context.Projects.ToListAsync();
+            ViewBag.ProjectList = new SelectList(projects, "ProjectId", "ProjectName", module.ProjectId);
+
+            return View(module);
+        }
         // =========================================
         // 🔥 EDIT (FIXED)
         // =========================================

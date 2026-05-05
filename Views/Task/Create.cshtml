@@ -10,7 +10,7 @@
 
         <h2 class="page-title">Create Task</h2>
 
-        <form asp-action="Create" method="post" enctype="multipart/form-data">
+        <form asp-action="Create" method="post">
 
             @Html.AntiForgeryToken()
 
@@ -18,12 +18,13 @@
             <div class="form-group">
                 <label>Select Project</label>
                 <select id="projectDropdown"
-                        asp-for="ProjectId"
-                        asp-items="ViewBag.ProjectList"
                         class="form-control">
                     <option value="">-- Select Project --</option>
+                    @foreach (var p in ViewBag.Projects)
+                    {
+                        <option value="@p.Value">@p.Text</option>
+                    }
                 </select>
-                <span asp-validation-for="ProjectId" class="text-danger"></span>
             </div>
 
             <!-- SELECT MODULE -->
@@ -39,8 +40,8 @@
 
             <!-- TASK NAME -->
             <div class="form-group">
-                <label for="TaskName">Task Name</label>
-                <input asp-for="TaskName" id="TaskName" class="form-control" /> <!-- Match with 'id' -->
+                <label>Task Name</label>
+                <input asp-for="TaskName" class="form-control" />
                 <span asp-validation-for="TaskName" class="text-danger"></span>
             </div>
 
@@ -85,11 +86,6 @@
 
             </div>
 
-            <div class="form-group">
-                <label>Upload Document</label>
-                <input type="file" name="documentFile" class="form-control" />
-            </div>
-
             <!-- BUTTON -->
             <button type="submit" class="btn-save">
                 Create Task
@@ -103,8 +99,10 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
     <script>
         function loadModules(projectId, selectedModuleId = null) {
+
             let moduleDropdown = document.getElementById("ModuleId");
             moduleDropdown.innerHTML = '<option value="">-- Select Module --</option>';
 
@@ -113,30 +111,52 @@
             fetch('/Task/GetModulesByProject?projectId=' + projectId)
                 .then(response => response.json())
                 .then(data => {
+
                     data.forEach(m => {
                         let option = document.createElement("option");
-                        option.value = m.moduleId ?? m.ModuleId;
-                        option.text = m.moduleName ?? m.ModuleName;
-                        
-                        // Keep the selected value if it exists
-                        if(selectedModuleId && option.value == selectedModuleId) {
+
+                        option.value = m.moduleId;
+                        option.text = m.moduleName;
+
+                        if (selectedModuleId && option.value == selectedModuleId) {
                             option.selected = true;
                         }
+
                         moduleDropdown.appendChild(option);
                     });
                 });
         }
 
-        // Trigger on change
-        document.getElementById("projectDropdown").addEventListener("change", function () {
-            loadModules(this.value);
-        });
+        // Project change
+        document.getElementById("projectDropdown")
+            .addEventListener("change", function () {
+                loadModules(this.value);
+            });
 
-        window.onload = function() {
-            var pId = document.getElementById("projectDropdown").value;
-            var mId = "@Model?.ModuleId";
-            if (pId) {
-                loadModules(pId, mId);
+        // Page load (for edit / preselected case)
+        window.onload = function () {
+            var selectedModuleId = "@Model?.ModuleId";
+
+            if (selectedModuleId && selectedModuleId != "0") {
+
+                fetch('/Task/GetModulesByProject?projectId=0') // temp load all
+                    .then(response => response.json())
+                    .then(data => {
+
+                        let moduleDropdown = document.getElementById("ModuleId");
+
+                        data.forEach(m => {
+                            let option = document.createElement("option");
+                            option.value = m.moduleId;
+                            option.text = m.moduleName;
+
+                            if (m.moduleId == selectedModuleId) {
+                                option.selected = true;
+                            }
+
+                            moduleDropdown.appendChild(option);
+                        });
+                    });
             }
         };
     </script>
