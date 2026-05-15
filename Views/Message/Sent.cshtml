@@ -1,0 +1,20 @@
+﻿@model List<GPMS.Models.Message>
+
+<h2>Sent Messages</h2>
+
+@foreach (var item in Model)
+{
+    <div class="sent-card">
+
+        <h4>@item.Subject</h4>
+
+        <p>
+            To:
+            @string.Join(", ", item.Receivers.Select(x => x.Receiver.EmployeeName))
+        </p>
+
+        <small>
+            @item.SentAt
+        </small>
+    </div>
+}

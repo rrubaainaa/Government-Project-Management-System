@@ -22,8 +22,9 @@ namespace GPMS.Data
         public virtual DbSet<Project> Projects { get; set; }
         public virtual DbSet<Role> Roles { get; set; }
         public virtual DbSet<RolePermission> RolePermissions { get; set; }
-
         public virtual DbSet<Document> Documents { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<MessageReceiver> MessageReceivers { get; set; }
 
         // Avoid Task naming conflict
         public virtual DbSet<GPMS.Models.Task> Tasks { get; set; }

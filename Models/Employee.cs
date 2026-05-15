@@ -76,4 +76,7 @@ public partial class Employee
     [ForeignKey("DesignationId")]
     [InverseProperty("Employees")]
     public Designation? Designation { get; set; }
+
+    public ICollection<Message> SentMessages { get; set; }
+    public ICollection<MessageReceiver> ReceivedMessages { get; set; }
 }

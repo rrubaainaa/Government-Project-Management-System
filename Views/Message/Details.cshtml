@@ -1,0 +1,16 @@
+﻿@model GPMS.Models.MessageReceiver
+
+<div class="details-box">
+
+    <h2>@Model.Message.Subject</h2>
+
+    <div class="message-info">
+        <strong>From:</strong>
+        @Model.Message.Sender.EmployeeName
+    </div>
+
+    <div class="message-body">
+        @Model.Message.Body
+    </div>
+
+</div>

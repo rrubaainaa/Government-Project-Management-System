@@ -1,0 +1,75 @@
+﻿    .message-page {
+        padding: 30px;
+    }
+
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .compose-btn {
+        background: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+    }
+
+    .message-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: black;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .sender {
+        font-weight: bold;
+    }
+
+    .subject {
+        color: gray;
+    }
+
+    .compose-container {
+        max-width: 800px;
+        margin: auto;
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+    }
+
+    .search-item {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+        cursor: pointer;
+        background: white;
+    }
+
+        .search-item:hover {
+            background: #f1f1f1;
+        }
+
+    .selected-user {
+        display: inline-block;
+        background: #007bff;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 20px;
+        margin: 5px;
+    }
+
+    .send-btn {
+        background: green;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+    }

@@ -1,108 +1,247 @@
 ﻿<!DOCTYPE html>
 
 <html lang="en">
+
 <head>
+
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
     <title>@ViewData["Title"] - GPMS</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+
+    <!-- =========================================
+    CSS
+    ========================================= -->
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css" />
+
+    <link rel="stylesheet"
+          href="~/css/message.css" />
+
+    <link rel="stylesheet"
+          href="~/css/chat-popup.css" />
 
 </head>
 
 <body>
 
-    <!-- NAVBAR -->
+    <!-- =========================================
+    NAVBAR
+    ========================================= -->
+
     <nav class="navbar navbar-expand-lg bg-white shadow-sm px-4 gpms-navbar">
 
-        <!-- LOGO + SYSTEM NAME -->
+        <!-- LOGO -->
+
         <div class="d-flex align-items-center me-4">
 
-            <img src="@Url.Content("~/Emblem_of_India.png")" style="height:40px;width:auto;margin-right:10px" ; />
+            <img src="@Url.Content("~/Emblem_of_India.png")"
+                 style="height:40px;width:auto;margin-right:10px" />
 
             <span class="navbar-brand fw-bold system-title">
+
                 Government Project Management System
+
             </span>
 
         </div>
 
+        <!-- NAVIGATION -->
 
         <div class="collapse navbar-collapse">
 
-            <!-- NAVIGATION MENU -->
             <ul class="navbar-nav me-auto gpms-menu">
 
+                <!-- DASHBOARD -->
+
                 <li class="nav-item">
-                    <a class="nav-link" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+
+                    <a class="nav-link"
+                           asp-controller="Dashboard"
+                           asp-action="Index">
+
+                        Dashboard
+
+                    </a>
+
                 </li>
 
-                <!-- ADMIN ONLY -->
+                <!-- =====================================
+                ADMIN MENU
+                ===================================== -->
                 @if (User.IsInRole("Admin"))
                 {
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Project" asp-action="Index">Projects</a>
+
+                        <a class="nav-link"
+                               asp-controller="Project"
+                               asp-action="Index">
+
+                            Projects
+
+                        </a>
+
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Module" asp-action="Index">Modules</a>
+
+                        <a class="nav-link"
+                               asp-controller="Module"
+                               asp-action="Index">
+
+                            Modules
+
+                        </a>
+
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Task" asp-action="Index">Tasks</a>
+
+                        <a class="nav-link"
+                               asp-controller="Task"
+                               asp-action="Index">
+
+                            Tasks
+
+                        </a>
+
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Designation" asp-action="Index">Designation</a>
+
+                        <a class="nav-link"
+                               asp-controller="Designation"
+                               asp-action="Index">
+
+                            Designation
+
+                        </a>
+
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Employee" asp-action="Index">Employees</a>
+
+                        <a class="nav-link"
+                               asp-controller="Employee"
+                               asp-action="Index">
+
+                            Employees
+
+                        </a>
+
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Role" asp-action="Index">Roles</a>
+
+                        <a class="nav-link"
+                               asp-controller="Role"
+                               asp-action="Index">
+
+                            Roles
+
+                        </a>
+
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Permission" asp-action="Index">Permissions</a>
+
+                        <a class="nav-link"
+                               asp-controller="Permission"
+                               asp-action="Index">
+
+                            Permissions
+
+                        </a>
+
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Document" asp-action="Index">Documents</a>
+
+                        <a class="nav-link"
+                               asp-controller="Document"
+                               asp-action="Index">
+
+                            Documents
+
+                        </a>
+
                     </li>
                 }
 
-                <!-- EMPLOYEE ONLY -->
+                <!-- =====================================
+                EMPLOYEE MENU
+                ===================================== -->
                 @if (!User.IsInRole("Admin"))
                 {
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Project" asp-action="Index">My Projects</a>
+
+                        <a class="nav-link"
+                               asp-controller="Project"
+                               asp-action="Index">
+
+                            My Projects
+
+                        </a>
+
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Module" asp-action="Index">My Modules</a>
+
+                        <a class="nav-link"
+                               asp-controller="Module"
+                               asp-action="Index">
+
+                            My Modules
+
+                        </a>
+
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Task" asp-action="Index">My Tasks</a>
+
+                        <a class="nav-link"
+                               asp-controller="Task"
+                               asp-action="Index">
+
+                            My Tasks
+
+                        </a>
+
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Document" asp-action="Index">My Documents</a>
+
+                        <a class="nav-link"
+                               asp-controller="Document"
+                               asp-action="Index">
+
+                            My Documents
+
+                        </a>
+
                     </li>
                 }
 
             </ul>
 
+            <!-- =====================================
+            LOGOUT
+            ===================================== -->
 
-            <!-- USER PROFILE -->
-             <div class="d-flex align-items-center user-section">
+            <div class="d-flex align-items-center user-section">
 
                 <a asp-controller="Account"
-                   asp-action="Logout"
-                   class="logout-btn">
+                       asp-action="Logout"
+                       class="logout-btn">
 
                     Log out
+
                 </a>
 
             </div>
@@ -111,8 +250,9 @@
 
     </nav>
 
-
-    <!-- MAIN CONTENT -->
+    <!-- =========================================
+    MAIN CONTENT
+    ========================================= -->
 
     <div class="container-fluid mt-4">
 
@@ -120,10 +260,906 @@
 
     </div>
 
+    <!-- =========================================
+    FLOATING CHAT BUTTON
+    ========================================= -->
+
+    <div class="chat-fab"
+         onclick="toggleChatPopup()">
+
+        💬
+
+    </div>
+
+    <!-- =========================================
+    MAIN CHAT POPUP
+    ========================================= -->
+
+    <div class="chat-popup"
+         id="chatPopup">
+
+        <!-- =====================================
+        LEFT SIDEBAR
+        ===================================== -->
+
+        <div class="chat-sidebar">
+
+            <!-- HEADER -->
+
+            <div class="chat-header">
+
+                <h3>Messages</h3>
+
+                <button class="compose-btn"
+                        onclick="openComposePopup()">
+
+                    + Compose
+
+                </button>
+
+            </div>
+
+            <!-- SEARCH -->
+
+            <div class="chat-search-box">
+
+                <input type="text"
+                       id="chatEmployeeSearch"
+                       placeholder="Search employee..." />
+
+                <div id="chatSearchResults"></div>
+
+            </div>
+
+            <!-- CHAT LIST -->
+
+            <div class="chat-list"
+                 id="chatList">
+
+            </div>
+
+        </div>
+
+        <!-- =====================================
+        RIGHT CHAT AREA
+        ===================================== -->
+
+        <div class="chat-main d-none" id="chatMain">
+
+            <!-- CHAT HEADER -->
+
+            <div class="chat-main-header">
+
+                <input type="hidden"
+                       id="currentChatEmployeeId" />
+
+                <div>
+
+                    <h4>Conversation</h4>
+
+                </div>
+
+            </div>
+
+            <!-- CHAT BODY -->
+
+            <div class="chat-body"
+                 id="chatBody">
+
+                @if (ViewBag.Messages != null)
+                {
+                    foreach (var msg in ViewBag.Messages)
+                    {
+                        if (msg.IsMine)
+                        {
+                            <div class="message sent">
+
+                                @msg.Body
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="message received">
+
+                                @msg.Body
+
+                            </div>
+                        }
+                    }
+                }
+
+            </div>
+
+            <!-- MESSAGE INPUT -->
+
+            <div class="chat-input-area">
+
+                <input type="text" id="chatMessageInput"
+                       placeholder="Type a message..." />
+
+                <button type="button"
+                        onclick="sendChatMessage()">
+
+                    ➤
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================
+    COMPOSE POPUP
+    ========================================= -->
+
+    <div class="compose-popup"
+         id="composePopup">
+
+        <!-- HEADER -->
+
+        <div class="compose-header">
+
+            <h3>New Message</h3>
+
+            <button onclick="closeComposePopup()">
+
+                ✕
+
+            </button>
+
+        </div>
+
+        <!-- BODY -->
+
+        <div class="compose-body">
+
+            <form id="composeForm">
+
+                <!-- TO -->
+
+                <div class="compose-group">
+
+                    <label>To</label>
+
+                    <!-- SELECTED USERS -->
+
+                    <div class="selected-users"
+                         id="selectedUsers">
+                    </div>
+
+                    <!-- SEARCH INPUT -->
+
+                    <input type="text"
+                           id="employeeSearch"
+                           placeholder="Search employees..." />
+
+                    <!-- SEARCH RESULTS -->
+
+                    <div id="employeeResults">
+                    </div>
+
+                </div>
+
+                <!-- SUBJECT -->
+
+                <div class="compose-group">
+
+                    <label>Subject</label>
+
+                    <input type="text"
+                           name="Subject" />
+
+                </div>
+
+                <!-- BODY -->
+
+                <div class="compose-group">
+
+                    <textarea rows="10"
+                              name="Body"
+                              placeholder="Write message..."></textarea>
+
+                </div>
+
+                <!-- SEND BUTTON -->
+
+                <button type="button"
+                        class="send-message-btn"
+                        onclick="sendComposeMessage()">
+
+                    Send
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================
+SCRIPTS
+========================================= -->
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- =========================================
+CHAT SCRIPT
+========================================= -->
+
+    <script>
+
+            // =====================================
+            // TOGGLE CHAT POPUP
+            // =====================================
+
+            function toggleChatPopup()
+            {
+                let popup =
+                    document.getElementById('chatPopup');
+
+                popup.classList.toggle('show-chat');
+
+                if (popup.classList.contains('show-chat'))
+                {
+                    loadChatList();
+                }
+            }
+
+            // =====================================
+            // OPEN COMPOSE POPUP
+            // =====================================
+
+            function openComposePopup()
+            {
+                document
+                    .getElementById('composePopup')
+                    .style.display = 'block';
+            }
+
+            // =====================================
+            // CLOSE COMPOSE POPUP
+            // =====================================
+
+            function closeComposePopup()
+            {
+                document
+                    .getElementById('composePopup')
+                    .style.display = 'none';
+            }
+
+            // =====================================
+            // LIVE EMPLOYEE SEARCH (COMPOSE)
+            // =====================================
+
+            let selectedEmployees = [];
+
+            let employeeSearch =
+                document.getElementById('employeeSearch');
+
+            if (employeeSearch)
+            {
+                employeeSearch.addEventListener(
+                    'keyup',
+                    function ()
+                    {
+                        let term = this.value;
+
+                        if (term.length < 1)
+                        {
+                            document
+                                .getElementById(
+                                    'employeeResults'
+                                )
+                                .innerHTML = '';
+
+                            return;
+                        }
+
+                        fetch(
+                            '/Message/SearchEmployees?term='
+                            + term
+                        )
+
+                        .then(res => res.json())
+
+                        .then(data =>
+                        {
+                            let html = '';
+
+                            data.forEach(emp =>
+                            {
+                                html += `
+
+                                    <div class="employee-item"
+                                         onclick="selectEmployee(${emp.id}, '${emp.name}')">
+
+                                        ${emp.name}
+
+                                    </div>
+
+                                `;
+                            });
+
+                            document
+                                .getElementById(
+                                    'employeeResults'
+                                )
+                                .innerHTML = html;
+                        });
+                    }
+                );
+            }
+
+            // =====================================
+            // SELECT EMPLOYEE
+            // =====================================
+
+            function selectEmployee(id, name)
+            {
+                if (selectedEmployees.includes(id))
+                    return;
+
+                selectedEmployees.push(id);
+
+                document
+                    .getElementById('selectedUsers')
+                    .innerHTML += `
+
+                        <div class="selected-user-tag">
+
+                            ${name}
+
+                            <input type="hidden"
+                                   name="ReceiverIds"
+                                   value="${id}" />
+
+                        </div>
+
+                    `;
+
+                document
+                    .getElementById('employeeResults')
+                    .innerHTML = '';
+
+                document
+                    .getElementById('employeeSearch')
+                    .value = '';
+            }
+
+            // =====================================
+            // LOAD CONVERSATION
+            // =====================================
+
+            function loadConversation(employeeId)
+            {
+                fetch(
+                    '/Message/GetConversation?employeeId='
+                    + employeeId
+                )
+
+                .then(res => res.json())
+
+                .then(data =>
+                {
+                    let html = '';
+
+                    data.forEach(msg =>
+                    {
+                        if (msg.isMine)
+                        {
+                            html += `
+
+                                <div class="message sent">
+
+                                    ${msg.body}
+
+                                </div>
+
+                            `;
+                        }
+                        else
+                        {
+                            html += `
+
+                                <div class="message received">
+
+                                    ${msg.body}
+
+                                </div>
+
+                            `;
+                        }
+                    });
+
+            document
+                .getElementById('chatBody')
+                .innerHTML = html;
+
+            let chatBody =
+                document.getElementById('chatBody');
+
+            chatBody.scrollTop =
+                chatBody.scrollHeight;
+                });
+            }
+
+            // =====================================
+            // SEARCH EMPLOYEE IN SIDEBAR
+            // =====================================
+
+            let chatSearch =
+                document.getElementById(
+                    'chatEmployeeSearch'
+                );
+
+            if (chatSearch)
+            {
+                chatSearch.addEventListener(
+                    'keyup',
+                    function ()
+                    {
+                        let term = this.value;
+
+                        if (term.length < 1)
+                        {
+                            document
+                                .getElementById(
+                                    'chatSearchResults'
+                                )
+                                .innerHTML = '';
+
+                            return;
+                        }
+
+                        fetch(
+                            '/Message/SearchEmployees?term='
+                            + term
+                        )
+
+                        .then(res => res.json())
+
+                        .then(data =>
+                        {
+                            let html = '';
+
+                            data.forEach(emp =>
+                            {
+                                html += `
+
+                                    <div class="employee-item"
+                                         onclick="openEmployeeChat(${emp.id}, '${emp.name}')">
+
+                                        ${emp.name}
+
+                                    </div>
+
+                                `;
+                            });
+
+                            document
+                                .getElementById(
+                                    'chatSearchResults'
+                                )
+                                .innerHTML = html;
+                        });
+                    }
+                );
+            }
+
+            // =====================================
+            // OPEN EMPLOYEE CHAT
+            // =====================================
+
+            function openEmployeeChat(
+                employeeId,
+                employeeName
+            )
+            {
+                document
+                    .querySelector(
+                        '.chat-main-header h4'
+                    )
+                    .innerText = employeeName;
+
+                document
+                    .getElementById(
+                        'currentChatEmployeeId'
+                    )
+                    .value = employeeId;
+                document
+                    .getElementById('chatMain')
+                    .classList.remove('d-none');
+
+                loadConversation(employeeId);
+
+                document
+                    .getElementById(
+                        'chatSearchResults'
+                    )
+                    .innerHTML = '';
+
+                document
+                    .getElementById(
+                        'chatEmployeeSearch'
+                    )
+                    .value = '';
+            }
+
+            // =====================================
+            // ADD CHAT TO SIDEBAR
+            // =====================================
+
+            function addChatToList(
+                employeeId,
+                employeeName,
+                message
+            )
+            {
+                let chatList =
+                    document.getElementById(
+                        'chatList'
+                    );
+
+                let existingChat =
+                    document.querySelector(
+                        `[data-chat-id='${employeeId}']`
+                    );
+
+                // UPDATE EXISTING CHAT
+
+                if (existingChat)
+                {
+                    existingChat.querySelector(
+                        '.chat-message'
+                    ).innerText = message;
+
+                    return;
+                }
+
+                // CREATE NEW CHAT
+
+                let html = `
+
+                    <div class="chat-item"
+                         data-chat-id="${employeeId}"
+                         onclick="openEmployeeChat(${employeeId}, '${employeeName}')">
+
+                        <div class="chat-avatar">
+
+                            ${employeeName.charAt(0)}
+
+                        </div>
+
+                        <div class="chat-content">
+
+                            <div class="chat-top">
+
+                                <span class="chat-name">
+
+                                    ${employeeName}
+
+                                </span>
+
+                                <span class="chat-time">
+
+                                    now
+
+                                </span>
+
+                            </div>
+
+                            <div class="chat-message">
+
+                                ${message}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+                chatList.insertAdjacentHTML(
+                    'afterbegin',
+                    html
+                );
+            }
+
+            // =====================================
+            // SEND COMPOSE MESSAGE
+            // =====================================
+
+            function sendComposeMessage()
+            {
+                let subject =
+                    document.querySelector(
+                        'input[name="Subject"]'
+                    ).value;
+
+                let body =
+                    document.querySelector(
+                        'textarea[name="Body"]'
+                    ).value;
+
+                let receiverInputs =
+                    document.querySelectorAll(
+                        'input[name="ReceiverIds"]'
+                    );
+
+                let receiverIds = [];
+
+                receiverInputs.forEach(x =>
+                {
+                    receiverIds.push(
+                        parseInt(x.value)
+                    );
+                });
+
+                fetch('/Message/Compose',
+                {
+                    method: 'POST',
+
+                    headers:
+                    {
+                        'Content-Type': 'application/json'
+                    },
+
+                    body: JSON.stringify(
+                    {
+                        subject: subject,
+
+                        body: body,
+
+                        receiverIds: receiverIds
+                    })
+                })
+
+                .then(res => res.json())
+
+                .then(data =>
+                {
+                    closeComposePopup();
+
+                    // OPEN CHAT
+
+                    if (receiverIds.length > 0)
+                    {
+                        let employeeId =
+                            receiverIds[0];
+
+                        let employeeName =
+                            document.querySelector(
+                                '.selected-user-tag'
+                            ).innerText;
+
+                        // UPDATE HEADER
+
+                        document
+                            .querySelector(
+                                '.chat-main-header h4'
+                            )
+                            .innerText = employeeName;
+
+                        // SAVE CURRENT CHAT ID
+
+                        document
+                            .getElementById(
+                                'currentChatEmployeeId'
+                            )
+                            .value = employeeId;
+                         document
+                            .getElementById('chatMain')
+                            .classList.remove('d-none');
+
+                        // LOAD CHAT
+
+                        loadConversation(employeeId);
+
+                        // ADD TO SIDEBAR
+
+                        addChatToList(
+                            employeeId,
+                            employeeName,
+                            body
+                        );
+                    }
+
+                    // CLEAR FORM
+
+                    document
+                        .querySelector(
+                            'input[name="Subject"]'
+                        )
+                        .value = '';
+
+                    document
+                        .querySelector(
+                            'textarea[name="Body"]'
+                        )
+                        .value = '';
+
+                    document
+                        .getElementById(
+                            'selectedUsers'
+                        )
+                        .innerHTML = '';
+                });
+            }
+
+            // =====================================
+            // SEND QUICK CHAT MESSAGE
+            // =====================================
+
+            function sendChatMessage()
+            {
+                let messageInput =
+                    document.getElementById(
+                        'chatMessageInput'
+                    );
+
+                let message =
+                    messageInput.value;
+
+                let receiverId =
+                    document.getElementById(
+                        'currentChatEmployeeId'
+                    ).value;
+
+                if (message.trim() === '')
+                    return;
+
+                fetch('/Message/SendQuickMessage',
+                {
+                    method: 'POST',
+
+                    headers:
+                    {
+                        'Content-Type': 'application/json'
+                    },
+
+                    body: JSON.stringify(
+                    {
+                        receiverId: parseInt(receiverId),
+
+                        body: message
+                    })
+                })
+
+                .then(res => res.json())
+
+                .then(data =>
+                {
+                    // RELOAD CONVERSATION
+
+                    loadConversation(receiverId);
+
+                    loadChatList();
+
+                    // UPDATE SIDEBAR
+
+                    let employeeName =
+                        document.querySelector(
+                            '.chat-main-header h4'
+                        ).innerText;
+
+                    addChatToList(
+                        receiverId,
+                        employeeName,
+                        message
+                    );
+
+                    // CLEAR INPUT
+
+                    messageInput.value = '';
+
+                    // AUTO SCROLL
+
+                    let chatBody =
+                        document.getElementById(
+                            'chatBody'
+                        );
+
+                    chatBody.scrollTop =
+                        chatBody.scrollHeight;
+                });
+            }
+
+           function loadChatList()
+            {
+                fetch('/Message/GetChatList')
+
+                .then(res => res.json())
+
+                .then(data =>
+                {
+                    let html = '';
+
+                    data.forEach(chat =>
+                    {
+                        html += `
+
+                            <div class="chat-item"
+                                 data-chat-id="${chat.employeeId}"
+                                 onclick="openEmployeeChat(${chat.employeeId}, '${chat.employeeName}')">
+
+                                <div class="chat-avatar">
+
+                                    ${chat.employeeName.charAt(0)}
+
+                                </div>
+
+                                <div class="chat-content">
+
+                                    <div class="chat-top">
+
+                                        <span class="chat-name">
+
+                                            ${chat.employeeName}
+
+                                        </span>
+
+                                        <span class="chat-time">
+
+                                            ${chat.time}
+
+                                        </span>
+
+                                    </div>
+
+                                    <div class="chat-message">
+
+                                        ${chat.lastMessage}
+
+                                    </div>
+
+                                </div>
+
+                                ${chat.unreadCount > 0
+                                    ?
+                                    `<span class="chat-badge">
+                                        ${chat.unreadCount}
+                                     </span>`
+                                    :
+                                    ''
+                                }
+
+                            </div>
+
+                        `;
+                    });
+
+                    document
+                        .getElementById('chatList')
+                        .innerHTML = html;
+                });
+            }
+
+           setInterval(function ()
+            {
+                loadChatList();
+
+                let currentChat =
+                    document.getElementById(
+                        'currentChatEmployeeId'
+                    ).value;
+
+                if (currentChat)
+                {
+                    loadConversation(currentChat);
+                }
+
+            }, 3000);
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
+
 </body>
+
 </html>
