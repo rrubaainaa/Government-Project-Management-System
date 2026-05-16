@@ -9,141 +9,143 @@
 <head>
     <title>Government Project Management System</title>
 
-    
+    <!-- ✅ ADD THIS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
     <style>
-            body {
-                margin: 0;
-                font-family: Segoe UI;
-                background: #f4f7fb;
-            }
+        body {
+        margin: 0;
+        font-family: Segoe UI;
+        background: #f4f7fb;
+        }
 
-            .container {
-                display: flex;
-                height: 100vh;
-                width: 100%;
-            }
+        .container {
+        display: flex;
+        height: 100vh;
+        width: 100%;
+        }
 
-            .left {
-                flex: 65%;
-                background: #e9f2ff;
-                padding: 80px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            }
+        .left {
+        flex: 65%;
+        background: #e9f2ff;
+        padding: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        }
 
-                .left img {
-                    width: 90px;
-                    height: auto;
-                    margin-bottom: 20px;
-                }
+        .left img {
+        width: 90px;
+        height: auto;
+        margin-bottom: 20px;
+        }
 
-            .title {
-                font-size: 36px;
-                font-weight: 700;
-                color: #0a2a66;
-                max-width: 600px;
-            }
+        .title {
+        font-size: 36px;
+        font-weight: 700;
+        color: #0a2a66;
+        max-width: 600px;
+        }
 
-            .subtitle {
-                margin-top: 10px;
-                color: #5a6b8a;
-                font-size: 16px;
-            }
+        .subtitle {
+        margin-top: 10px;
+        color: #5a6b8a;
+        font-size: 16px;
+        }
 
-            .right {
-                flex: 35%;
-                background: white;
-                padding: 80px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                box-shadow: -5px 0 20px rgba(0,0,0,0.05);
-            }
+        .right {
+        flex: 35%;
+        background: white;
+        padding: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-shadow: -5px 0 20px rgba(0,0,0,0.05);
+        }
 
-            h2 {
-                margin-bottom: 25px;
-                color: #0a2a66;
-                font-size: 28px;
-            }
+        h2 {
+        margin-bottom: 25px;
+        color: #0a2a66;
+        font-size: 28px;
+        }
 
-            label {
-                font-size: 14px;
-                color: #333;
-            }
+        label {
+        font-size: 14px;
+        color: #333;
+        }
 
-            input {
-                width: 100%;
-                padding: 12px;
-                margin-top: 6px;
-                margin-bottom: 20px;
-                border-radius: 6px;
-                border: 1px solid #d2d8e5;
-                font-size: 14px;
-                box-sizing: border-box;
-            }
+        input {
+        width: 100%;
+        padding: 12px;
+        margin-top: 6px;
+        margin-bottom: 20px;
+        border-radius: 6px;
+        border: 1px solid #d2d8e5;
+        font-size: 14px;
+        box-sizing: border-box;
+        }
 
-            .captcha-box {
-                display: flex;
-                gap: 12px;
-                align-items: center;
-                margin-bottom: 20px;
-            }
+        .captcha-box {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 20px;
+        }
 
-            .captcha {
-                background: #eef3ff;
-                padding: 12px 18px;
-                font-weight: bold;
-                letter-spacing: 3px;
-                border-radius: 5px;
-                font-family: monospace;
-                font-size: 18px;
-            }
+        .captcha {
+        background: #eef3ff;
+        padding: 12px 18px;
+        font-weight: bold;
+        letter-spacing: 3px;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 18px;
+        }
 
-            .captcha-box input {
-                margin: 0;
-            }
+        .captcha-box input {
+        margin: 0;
+        }
 
-            button {
-                width: 100%;
-                padding: 14px;
-                background: #2f6fed;
-                border: none;
-                border-radius: 6px;
-                color: white;
-                font-size: 16px;
-                cursor: pointer;
-            }
+        button {
+        width: 100%;
+        padding: 14px;
+        background: #2f6fed;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        }
 
-                button:hover {
-                    background: #1c55c8;
-                }
+        button:hover {
+        background: #1c55c8;
+        }
 
-            .error {
-                color: red;
-                margin-bottom: 15px;
-            }
+        .error {
+        color: red;
+        margin-bottom: 15px;
+        }
 
-            .forgot-password {
-                text-align: right;
-                margin-top: -10px;
-                margin-bottom: 20px;
-            }
+        .forgot-password {
+        text-align: right;
+        margin-top: -10px;
+        margin-bottom: 20px;
+        }
 
-                .forgot-password a {
-                    color: #2f6fed;
-                    text-decoration: none;
-                    font-size: 14px;
-                }
+        .forgot-password a {
+        color: #2f6fed;
+        text-decoration: none;
+        font-size: 14px;
+        }
 
-                    .forgot-password a:hover {
-                        text-decoration: underline;
-                    }
+        .forgot-password a:hover {
+        text-decoration: underline;
+        }
 
-            .success {
-                color: green;
-                margin-bottom: 15px;
-            }
+        .success {
+        color: green;
+        margin-bottom: 15px;
+        }
     </style>
 </head>
 
@@ -182,18 +184,30 @@
                 <div class="error">@error.ErrorMessage</div>
             }
 
-            <!-- ✅ ADDED onsubmit -->
-            <form method="post">
+            <!-- ✅ ADD ID -->
+            <form method="post" id="loginForm">
+
                 @Html.AntiForgeryToken()
 
                 <label>Username</label>
                 <input asp-for="Username" />
 
                 <label>Password</label>
-                <input asp-for="Password" type="password" id="Password" />
+
+                <!-- ✅ VISIBLE PASSWORD -->
+                <input type="password"
+                       id="PasswordVisible" />
+
+                <!-- ✅ HASHED PASSWORD SENT -->
+                <input asp-for="Password"
+                       type="hidden"
+                       id="Password" />
 
                 <div class="forgot-password">
-                    <a asp-controller="Account" asp-action="ForgotPassword">Forgot Password?</a>
+                    <a asp-controller="Account"
+                           asp-action="ForgotPassword">
+                        Forgot Password?
+                    </a>
                 </div>
 
                 <label>Captcha</label>
@@ -203,7 +217,8 @@
                         @Model.CaptchaCode
                     </div>
 
-                    <input asp-for="Captcha" placeholder="Enter captcha" />
+                    <input asp-for="Captcha"
+                           placeholder="Enter captcha" />
                 </div>
 
                 <button type="submit">
@@ -215,6 +230,26 @@
 
     </div>
 
+    <!-- ✅ ADD THIS SCRIPT -->
+    <script>
+        document.getElementById("loginForm")
+        .addEventListener("submit", function () {
+
+        var plainPassword =
+        document.getElementById("PasswordVisible").value;
+
+        // CLIENT SIDE SHA256
+        var hashedPassword =
+        CryptoJS.SHA256(plainPassword).toString();
+
+        // SEND HASH TO SERVER
+        document.getElementById("Password").value =
+        hashedPassword;
+
+        // CLEAR VISIBLE PASSWORD
+        document.getElementById("PasswordVisible").value = "";
+        });
+    </script>
 
 </body>
 </html>

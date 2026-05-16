@@ -346,17 +346,22 @@ COMPOSE POPUP
 
 .compose-popup {
     position: fixed;
-    right: 120px;
-    bottom: 100px;
-    width: 700px;
-    height: 650px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 55%;
+    max-width: 750px;
     background: white;
     border-radius: 20px;
     display: none;
     z-index: 10000;
-    overflow: hidden;
     box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+    padding: 20px;
 }
+
+    .compose-popup * {
+        box-sizing: border-box;
+    }
 
 /* =========================================
 COMPOSE HEADER
@@ -366,7 +371,8 @@ COMPOSE HEADER
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
     border-bottom: 1px solid #eee;
 }
 
@@ -387,8 +393,26 @@ COMPOSE BODY
 ========================================= */
 
 .compose-body {
-    padding: 20px;
+    width: 100%;
 }
+
+    .compose-body textarea {
+        width: 100%;
+        height: 220px;
+        border-radius: 14px;
+        border: 1px solid #ddd;
+        padding: 14px;
+        resize: none;
+        outline: none;
+    }
+
+    .compose-body input {
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 14px;
+        padding: 14px;
+        outline: none;
+    }
 
 /* =========================================
 FORM GROUP
@@ -414,6 +438,24 @@ FORM GROUP
         font-size: 14px;
     }
 
+.selected-user-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #0d6efd;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 30px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.remove-user {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+}
 /* =========================================
 EMPLOYEE SEARCH RESULTS
 ========================================= */
@@ -526,4 +568,56 @@ RESPONSIVE
         width: 100%;
         height: 60%;
     }
+}
+
+/* DATE */
+
+.chat-date {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 13px;
+    color: #666;
+    font-weight: 600;
+}
+
+/* ROW */
+
+.message-row {
+    display: flex;
+    margin-bottom: 12px;
+}
+
+.sent-row {
+    justify-content: flex-end;
+}
+
+.received-row {
+    justify-content: flex-start;
+}
+
+/* MESSAGE */
+
+.message {
+    max-width: 320px;
+    padding: 10px 14px;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sent {
+    background: #dbeafe;
+}
+
+.received {
+    background: white;
+}
+
+/* TIME */
+
+.message-time {
+    font-size: 11px;
+    color: #666;
+    align-self: flex-end;
 }

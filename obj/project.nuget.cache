@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Y98PHKjE8lM=",
+  "dgSpecHash": "N7v3CTXppfY=",
   "success": true,
-  "projectFilePath": "D:\\rubu study\\GPMS\\Government-Project-Management-System\\GPMS.csproj",
+  "projectFilePath": "D:\\rubucode\\nic project\\GPMS\\GPMS.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\PAWAN\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\PAWAN\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",

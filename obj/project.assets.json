@@ -3452,11 +3452,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\rubu study\\GPMS\\Government-Project-Management-System\\GPMS.csproj",
+      "projectUniqueName": "D:\\rubucode\\nic project\\GPMS\\GPMS.csproj",
       "projectName": "GPMS",
-      "projectPath": "D:\\rubu study\\GPMS\\Government-Project-Management-System\\GPMS.csproj",
+      "projectPath": "D:\\rubucode\\nic project\\GPMS\\GPMS.csproj",
       "packagesPath": "C:\\Users\\PAWAN\\.nuget\\packages\\",
-      "outputPath": "D:\\rubu study\\GPMS\\Government-Project-Management-System\\obj\\",
+      "outputPath": "D:\\rubucode\\nic project\\GPMS\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

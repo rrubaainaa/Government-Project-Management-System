@@ -150,17 +150,21 @@ namespace GPMS.Controllers
                 )
             );
 
-            // =====================================
-            // CREATE MESSAGE
-            // =====================================
+            if (vm == null)
+            {
+                return Json(new
+                {
+                    success = false
+                });
+            }
 
             Message message = new Message
             {
                 SenderId = currentUserId,
 
-                Subject = vm.Subject,
-
                 Body = vm.Body,
+
+                Subject = "Chat Message",
 
                 SentAt = DateTime.Now
             };
@@ -168,10 +172,6 @@ namespace GPMS.Controllers
             _context.Messages.Add(message);
 
             await _context.SaveChangesAsync();
-
-            // =====================================
-            // SAVE RECEIVERS
-            // =====================================
 
             foreach (var receiverId in vm.ReceiverIds)
             {
@@ -190,15 +190,9 @@ namespace GPMS.Controllers
 
             await _context.SaveChangesAsync();
 
-            // =====================================
-            // RETURN SUCCESS
-            // =====================================
-
             return Json(new
             {
-                success = true,
-
-                receiverId = vm.ReceiverIds.FirstOrDefault()
+                success = true
             });
         }
 
@@ -323,7 +317,10 @@ namespace GPMS.Controllers
                         m.SenderId == currentUserId,
 
                     time =
-                        m.SentAt
+                        m.SentAt.ToString("hh:mm tt"),
+
+                    fullDate =
+                        m.SentAt.ToString("dd MMM yyyy")
                 })
 
                 .ToListAsync();

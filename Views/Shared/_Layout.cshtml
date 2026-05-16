@@ -443,17 +443,6 @@
 
                 </div>
 
-                <!-- SUBJECT -->
-
-                <div class="compose-group">
-
-                    <label>Subject</label>
-
-                    <input type="text"
-                           name="Subject" />
-
-                </div>
-
                 <!-- BODY -->
 
                 <div class="compose-group">
@@ -531,6 +520,34 @@ CHAT SCRIPT
                 document
                     .getElementById('composePopup')
                     .style.display = 'none';
+
+                // CLEAR FORM
+
+                document
+                    .querySelector(
+                        'textarea[name="Body"]'
+                    )
+                    .value = '';
+
+                document
+                    .getElementById(
+                        'selectedUsers'
+                    )
+                    .innerHTML = '';
+
+                document
+                    .getElementById(
+                        'employeeSearch'
+                    )
+                    .value = '';
+
+                document
+                    .getElementById(
+                        'employeeResults'
+                    )
+                    .innerHTML = '';
+
+                selectedEmployees = [];
             }
 
             // =====================================
@@ -611,9 +628,17 @@ CHAT SCRIPT
                     .getElementById('selectedUsers')
                     .innerHTML += `
 
-                        <div class="selected-user-tag">
+                        <div class="selected-user-tag"
+                             id="selected-user-${id}">
 
                             ${name}
+
+                            <span class="remove-user"
+                                  onclick="removeEmployee(${id})">
+
+                                ✕
+
+                            </span>
 
                             <input type="hidden"
                                    name="ReceiverIds"
@@ -622,6 +647,8 @@ CHAT SCRIPT
                         </div>
 
                     `;
+
+                // CLEAR SEARCH
 
                 document
                     .getElementById('employeeResults')
@@ -632,61 +659,125 @@ CHAT SCRIPT
                     .value = '';
             }
 
+            function removeEmployee(id)
+            {
+                selectedEmployees =
+                    selectedEmployees.filter(x => x !== id);
+
+                let userTag =
+                    document.getElementById(
+                        `selected-user-${id}`
+                    );
+
+                if (userTag)
+                {
+                    userTag.remove();
+                }
+            }
+
             // =====================================
             // LOAD CONVERSATION
             // =====================================
 
-            function loadConversation(employeeId)
+                        function loadConversation(employeeId)
             {
-                fetch(
-                    '/Message/GetConversation?employeeId='
-                    + employeeId
-                )
+                fetch('/Message/GetConversation?employeeId=' + employeeId)
 
-                .then(res => res.json())
+                    .then(res => res.json())
 
-                .then(data =>
-                {
-                    let html = '';
-
-                    data.forEach(msg =>
+                    .then(data =>
                     {
-                        if (msg.isMine)
+                        let html = '';
+
+                        let lastDate = '';
+
+                        data.forEach(msg =>
                         {
-                            html += `
+                            // DATE SEPARATOR
 
-                                <div class="message sent">
+                            if (lastDate !== msg.fullDate)
+                            {
+                                html += `
 
-                                    ${msg.body}
+                                    <div class="chat-date">
 
-                                </div>
+                                        ${msg.fullDate}
 
-                            `;
-                        }
-                        else
-                        {
-                            html += `
+                                    </div>
 
-                                <div class="message received">
+                                `;
 
-                                    ${msg.body}
+                                lastDate = msg.fullDate;
+                            }
 
-                                </div>
+                            // MESSAGE
 
-                            `;
-                        }
+                            if (msg.isMine)
+                            {
+                                html += `
+
+                                    <div class="message-row sent-row">
+
+                                        <div class="message sent">
+
+                                            <div>
+
+                                                ${msg.body}
+
+                                            </div>
+
+                                            <span class="message-time">
+
+                                                ${msg.time}
+
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                `;
+                            }
+                            else
+                            {
+                                html += `
+
+                                    <div class="message-row received-row">
+
+                                        <div class="message received">
+
+                                            <div>
+
+                                                ${msg.body}
+
+                                            </div>
+
+                                            <span class="message-time">
+
+                                                ${msg.time}
+
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                `;
+                            }
+                        });
+
+                        document
+                            .getElementById('chatBody')
+                            .innerHTML = html;
+
+                        // AUTO SCROLL
+
+                        let chatBody =
+                            document.getElementById('chatBody');
+
+                        chatBody.scrollTop =
+                            chatBody.scrollHeight;
                     });
-
-            document
-                .getElementById('chatBody')
-                .innerHTML = html;
-
-            let chatBody =
-                document.getElementById('chatBody');
-
-            chatBody.scrollTop =
-                chatBody.scrollHeight;
-                });
             }
 
             // =====================================
@@ -878,10 +969,6 @@ CHAT SCRIPT
 
             function sendComposeMessage()
             {
-                let subject =
-                    document.querySelector(
-                        'input[name="Subject"]'
-                    ).value;
 
                 let body =
                     document.querySelector(
@@ -902,6 +989,9 @@ CHAT SCRIPT
                     );
                 });
 
+            console.log(receiverIds);
+            console.log(body);
+
                 fetch('/Message/Compose',
                 {
                     method: 'POST',
@@ -913,8 +1003,6 @@ CHAT SCRIPT
 
                     body: JSON.stringify(
                     {
-                        subject: subject,
-
                         body: body,
 
                         receiverIds: receiverIds
@@ -972,13 +1060,6 @@ CHAT SCRIPT
                     }
 
                     // CLEAR FORM
-
-                    document
-                        .querySelector(
-                            'input[name="Subject"]'
-                        )
-                        .value = '';
-
                     document
                         .querySelector(
                             'textarea[name="Body"]'
