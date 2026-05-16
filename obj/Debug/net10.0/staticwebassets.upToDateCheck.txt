@@ -65,7 +65,6 @@ wwwroot\lib\jquery\dist\jquery.slim.js
 wwwroot\lib\jquery\dist\jquery.slim.min.js
 wwwroot\lib\jquery\dist\jquery.slim.min.map
 wwwroot\lib\jquery\LICENSE.txt
-wwwroot\uploads\documents\db54c96e-c0cc-4a4f-b8be-effc8336b8e4.pdf
 D:\rubucode\nic project\GPMS\wwwroot\lib\jquery\dist\jquery.slim.min.map
 D:\rubucode\nic project\GPMS\wwwroot\css\dashboard.css
 D:\rubucode\nic project\GPMS\wwwroot\css\site.css

@@ -77,6 +77,6 @@ public partial class Employee
     [InverseProperty("Employees")]
     public Designation? Designation { get; set; }
 
-    public ICollection<Message> SentMessages { get; set; }
-    public ICollection<MessageReceiver> ReceivedMessages { get; set; }
+    public ICollection<Message>? SentMessages { get; set; }
+    public ICollection<MessageReceiver>? ReceivedMessages { get; set; }
 }
