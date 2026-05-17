@@ -68,6 +68,7 @@
                     <label asp-for="ModuleStartDate"></label>
                     <input asp-for="ModuleStartDate"
                            type="date"
+                           id="moduleStartDate"
                            class="form-control readonly-field"
                            readonly />
                     <span asp-validation-for="ModuleStartDate" class="text-danger"></span>
@@ -80,8 +81,10 @@
                 <label asp-for="ModuleEndDate"></label>
                 <input asp-for="ModuleEndDate"
                        type="date"
+                       id="moduleEndDate"
                        class="form-control" />
                 <span asp-validation-for="ModuleEndDate" class="text-danger"></span>
+                <small id="dateWarning" class="text-danger"></small>
             </div>
 
             <!-- BUTTON -->
@@ -98,5 +101,32 @@
 </div>
 
 @section Scripts {
+
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        const startDate = document.getElementById("moduleStartDate");
+        const endDate = document.getElementById("moduleEndDate");
+        const warning = document.getElementById("dateWarning");
+
+        // Prevent selecting before start date
+        endDate.min = startDate.value;
+
+        startDate.addEventListener("change", function () {
+            endDate.min = this.value;
+        });
+
+        // Live warning
+        endDate.addEventListener("change", function () {
+
+            if (endDate.value < startDate.value) {
+                warning.innerText = "End date cannot be before start date.";
+            }
+            else {
+                warning.innerText = "";
+            }
+        });
+
+    </script>
 }

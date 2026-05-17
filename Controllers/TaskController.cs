@@ -330,6 +330,25 @@
                 !await _permissionService.HasPermission(employeeId, projectId, "CreateTask"))
                 return Forbid();
 
+            var module = await _context.Modules
+            .FirstOrDefaultAsync(m => m.ModuleId == task.ModuleId);
+
+            if (module != null)
+            {
+                // Task end date before start date
+                if (task.TaskStartDate > task.TaskEndDate)
+                {
+                    ModelState.AddModelError("", "Task end date cannot be before start date.");
+                }
+
+                // Task dates outside module dates
+                if (task.TaskStartDate < module.ModuleStartDate ||
+                    task.TaskEndDate > module.ModuleEndDate)
+                {
+                    ModelState.AddModelError("", "Task dates must be within module dates.");
+                }
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Tasks.Add(task);
@@ -442,7 +461,27 @@
 
                 var employee = await _context.Employees.FindAsync(employeeId);
 
-                if (!employee.IsAdmin &&
+            // 🔥 GET MODULE DATES
+                var module = await _context.Modules
+                    .FirstOrDefaultAsync(m => m.ModuleId == task.ModuleId);
+
+                if (module != null)
+                {
+                    // Task end date before start date
+                    if (task.TaskStartDate > task.TaskEndDate)
+                    {
+                        ModelState.AddModelError("", "Task end date cannot be before start date.");
+                    }
+
+                    // Task dates outside module dates
+                    if (task.TaskStartDate < module.ModuleStartDate ||
+                        task.TaskEndDate > module.ModuleEndDate)
+                    {
+                        ModelState.AddModelError("", "Task dates must be within module dates.");
+                    }
+                }
+
+            if (!employee.IsAdmin &&
                     !await _permissionService.HasPermission(employeeId, task.TaskId, "EditTask"))
                     return Forbid();
 

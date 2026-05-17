@@ -13,6 +13,7 @@
         <form asp-action="Create" method="post">
 
             @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger"></div>
 
             <!-- SELECT PROJECT -->
             <div class="form-group">
@@ -72,6 +73,7 @@
                     <label>Start Date</label>
                     <input asp-for="TaskStartDate"
                            type="date"
+                           id="taskStartDate"
                            class="form-control" />
                     <span asp-validation-for="TaskStartDate" class="text-danger"></span>
                 </div>
@@ -80,8 +82,10 @@
                     <label>End Date</label>
                     <input asp-for="TaskEndDate"
                            type="date"
+                           id="taskEndDate"
                            class="form-control" />
                     <span asp-validation-for="TaskEndDate" class="text-danger"></span>
+                    <small id="dateWarning" class="text-danger"></small>
                 </div>
 
             </div>
@@ -101,6 +105,11 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
+
+        const startDate = document.getElementById("taskStartDate");
+        const endDate = document.getElementById("taskEndDate");
+        const warning = document.getElementById("dateWarning");
+
         function loadModules(projectId, selectedModuleId = null) {
 
             let moduleDropdown = document.getElementById("ModuleId");
@@ -132,6 +141,27 @@
             .addEventListener("change", function () {
                 loadModules(this.value);
             });
+
+        // Prevent invalid end dates
+        startDate.addEventListener("change", function () {
+
+            endDate.min = this.value;
+
+            if (endDate.value < this.value) {
+                endDate.value = "";
+            }
+        });
+
+        // Live warning
+        endDate.addEventListener("change", function () {
+
+            if (endDate.value < startDate.value) {
+                warning.innerText = "End date cannot be before start date.";
+            }
+            else {
+                warning.innerText = "";
+            }
+        });
 
         // Page load (for edit / preselected case)
         window.onload = function () {

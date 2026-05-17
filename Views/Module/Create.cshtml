@@ -13,6 +13,7 @@
         <form asp-action="Create" method="post" enctype="multipart/form-data">
 
             @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger"></div>
 
             <!-- SELECT PROJECT -->
             <div class="form-group">
@@ -62,6 +63,7 @@
                     <label>Start Date</label>
                     <input asp-for="ModuleStartDate"
                            type="date"
+                           id="moduleStartDate"
                            class="form-control" />
                     <span asp-validation-for="ModuleStartDate" class="text-danger"></span>
                 </div>
@@ -70,8 +72,10 @@
                     <label>End Date</label>
                     <input asp-for="ModuleEndDate"
                            type="date"
+                           id="moduleEndDate"
                            class="form-control" />
                     <span asp-validation-for="ModuleEndDate" class="text-danger"></span>
+                    <small id="dateWarning" class="text-danger"></small>
                 </div>
 
             </div>
@@ -92,10 +96,37 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
+
         document.addEventListener("DOMContentLoaded", function () {
 
             const projectDropdown = document.getElementById("projectDropdown");
 
+            const startDate = document.getElementById("moduleStartDate");
+            const endDate = document.getElementById("moduleEndDate");
+            const warning = document.getElementById("dateWarning");
+
+            // Prevent earlier end dates
+            startDate.addEventListener("change", function () {
+
+                endDate.min = this.value;
+
+                if (endDate.value < this.value) {
+                    endDate.value = "";
+                }
+            });
+
+            // Live warning
+            endDate.addEventListener("change", function () {
+
+                if (endDate.value < startDate.value) {
+                    warning.innerText = "End date cannot be before start date.";
+                }
+                else {
+                    warning.innerText = "";
+                }
+            });
+
+            // Existing project dropdown logic
             if (!projectDropdown) return;
 
             projectDropdown.addEventListener("change", function () {
@@ -112,5 +143,6 @@
             });
 
         });
+
     </script>
 }

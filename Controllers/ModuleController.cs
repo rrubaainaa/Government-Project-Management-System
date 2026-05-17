@@ -280,6 +280,26 @@ namespace GPMS.Controllers
                 !await _permissionService.HasPermission(employeeId, null, "CreateModule"))
                 return Forbid();
 
+            // 🔥 GET PROJECT DATES
+            var project = await _context.Projects
+                .FirstOrDefaultAsync(p => p.ProjectId == module.ProjectId);
+
+            if (project != null)
+            {
+                // End date before start date
+                if (module.ModuleStartDate > module.ModuleEndDate)
+                {
+                    ModelState.AddModelError("", "Module end date cannot be before start date.");
+                }
+
+                // Module dates outside project dates
+                if (module.ModuleStartDate < project.ProjectStartDate ||
+                    module.ModuleEndDate > project.ProjectEndDate)
+                {
+                    ModelState.AddModelError("", "Module dates must be within project dates.");
+                }
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Modules.Add(module);
@@ -329,6 +349,26 @@ namespace GPMS.Controllers
             if (!employee.IsAdmin &&
                 !await _permissionService.HasPermission(employeeId, module.ModuleId, "EditModule"))
                 return Forbid();
+
+            // 🔥 GET PROJECT DATES
+            var project = await _context.Projects
+                .FirstOrDefaultAsync(p => p.ProjectId == module.ProjectId);
+
+            if (project != null)
+            {
+                // End date before start date
+                if (module.ModuleStartDate > module.ModuleEndDate)
+                {
+                    ModelState.AddModelError("", "Module end date cannot be before start date.");
+                }
+
+                // Module dates outside project dates
+                if (module.ModuleStartDate < project.ProjectStartDate ||
+                    module.ModuleEndDate > project.ProjectEndDate)
+                {
+                    ModelState.AddModelError("", "Module dates must be within project dates.");
+                }
+            }
 
             if (ModelState.IsValid)
             {

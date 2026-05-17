@@ -22,6 +22,7 @@
         <form asp-action="Edit" method="post">
 
             @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger"></div>
 
             <!-- REQUIRED HIDDEN FIELDS -->
             <input type="hidden" asp-for="TaskId" />
@@ -73,6 +74,7 @@
                 <div class="form-group">
                     <label>Start Date</label>
                     <input class="form-control"
+                           id="taskStartDate"
                            value="@Model.TaskStartDate?.ToString("yyyy-MM-dd")"
                            readonly />
                 </div>
@@ -81,7 +83,10 @@
                     <label>End Date</label>
                     <input asp-for="TaskEndDate"
                            type="date"
+                           id="taskEndDate"
                            class="form-control" />
+
+                    <small id="dateWarning" class="text-danger"></small>
                 </div>
 
             </div>
@@ -104,3 +109,30 @@
     </div>
 
 </div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        const startDate = document.getElementById("taskStartDate");
+        const endDate = document.getElementById("taskEndDate");
+        const warning = document.getElementById("dateWarning");
+
+        // Prevent earlier dates
+        endDate.min = startDate.value;
+
+        // Live warning
+        endDate.addEventListener("change", function () {
+
+            if (endDate.value < startDate.value) {
+                warning.innerText = "End date cannot be before start date.";
+            }
+            else {
+                warning.innerText = "";
+            }
+        });
+
+    </script>
+}
