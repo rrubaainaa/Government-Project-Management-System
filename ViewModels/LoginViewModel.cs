@@ -14,5 +14,11 @@ namespace GPMS.ViewModels
         public string Captcha { get; set; }
 
         public string CaptchaCode { get; set; }
+
+        // NONCE
+        public string RandomNumber { get; set; }
+
+        // LOGIN HASH
+        public string DynamicHash { get; set; }
     }
 }

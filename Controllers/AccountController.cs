@@ -36,10 +36,39 @@ namespace GPMS.Controllers
         // =========================================
         private string HashToken(string token)
         {
-            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+            var bytes =
+                SHA256.HashData(
+                    Encoding.UTF8.GetBytes(token)
+                );
+
             return Convert.ToBase64String(bytes);
         }
 
+        // =========================================
+        // GENERATE RANDOM NUMBER
+        // =========================================
+        [HttpGet]
+        [HttpGet]
+        public IActionResult GenerateRandomNumber()
+        {
+            var nonce =
+                Guid.NewGuid().ToString();
+
+            HttpContext.Session.SetString(
+                "LoginNonce",
+                nonce
+            );
+
+            HttpContext.Session.SetString(
+                "LoginNonceCreated",
+                DateTime.UtcNow.ToString()
+            );
+
+            return Json(new
+            {
+                randomNumber = nonce
+            });
+        }
         // =========================================
         // LOGIN GET
         // =========================================
@@ -64,14 +93,21 @@ namespace GPMS.Controllers
         // =========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public async Task<IActionResult> Login(
+            LoginViewModel model)
         {
             var sessionCaptcha =
-                HttpContext.Session.GetString("CaptchaCode");
+                HttpContext.Session.GetString(
+                    "CaptchaCode"
+                );
 
             if (model.Captcha != sessionCaptcha)
             {
-                ModelState.AddModelError("", "Invalid captcha.");
+                ModelState.AddModelError(
+                    "",
+                    "Invalid captcha."
+                );
+
                 return ReloadCaptcha(model);
             }
 
@@ -81,46 +117,132 @@ namespace GPMS.Controllers
 
             if (user == null)
             {
-                ModelState.AddModelError("",
-                    "Invalid username or password.");
+                ModelState.AddModelError(
+                    "",
+                    "Invalid username or password."
+                );
 
                 return ReloadCaptcha(model);
             }
 
             if (string.IsNullOrWhiteSpace(user.Epassword))
             {
-                ModelState.AddModelError("",
-                    "Please set your password using the email link.");
+                ModelState.AddModelError(
+                    "",
+                    "Please set your password using the email link."
+                );
 
                 return ReloadCaptcha(model);
             }
 
             if (!string.IsNullOrWhiteSpace(user.ResetToken))
             {
-                ModelState.AddModelError("",
-                    "Please set your password using the email link.");
+                ModelState.AddModelError(
+                    "",
+                    "Please set your password using the email link."
+                );
 
                 return ReloadCaptcha(model);
             }
 
-            // ✅ SERVER SIDE PBKDF2 VERIFICATION
-            var result = _passwordHasher.VerifyHashedPassword(
-                user,
-                user.Epassword,
-                model.Password
-            );
+            // =========================================
+            // VERIFY BASE HASH
+            // =========================================
+            var result =
+ _passwordHasher.VerifyHashedPassword(
+  user,
+  user.Epassword,
+  model.Password
+);
 
             bool passwordValid =
                 result != PasswordVerificationResult.Failed;
 
             if (!passwordValid)
             {
-                ModelState.AddModelError("",
-                    "Invalid username or password.");
+                ModelState.AddModelError(
+                    "",
+                    "Invalid username or password."
+                );
+
+                return ReloadCaptcha(model);
+            }
+            var sessionNonce =
+    HttpContext.Session.GetString(
+        "LoginNonce"
+    );
+
+            var nonceCreated =
+                HttpContext.Session.GetString(
+                    "LoginNonceCreated"
+                );
+
+            if (sessionNonce != model.RandomNumber)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Invalid login session."
+                );
 
                 return ReloadCaptcha(model);
             }
 
+            if (string.IsNullOrWhiteSpace(
+                    nonceCreated))
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Login session expired."
+                );
+
+                return ReloadCaptcha(model);
+            }
+
+            DateTime nonceTime =
+                DateTime.Parse(nonceCreated);
+
+            if ((DateTime.UtcNow - nonceTime)
+                .TotalSeconds > 30)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Login request expired. Please try again."
+                );
+
+                return ReloadCaptcha(model);
+            }
+
+
+            // =========================================
+            // VERIFY DYNAMIC HASH
+            // =========================================
+            using var sha = SHA256.Create();
+
+            var bytes = sha.ComputeHash(
+                Encoding.UTF8.GetBytes(
+                    model.Password +
+                    model.RandomNumber
+                )
+            );
+
+            var serverDynamicHash =
+                Convert.ToHexString(bytes)
+                    .ToLower();
+
+            if (serverDynamicHash !=
+                model.DynamicHash.ToLower())
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Invalid login request."
+                );
+
+                return ReloadCaptcha(model);
+            }
+
+            // =========================================
+            // CREATE CLAIMS
+            // =========================================
             var claims = new List<Claim>
             {
                 new Claim(
@@ -190,6 +312,13 @@ namespace GPMS.Controllers
                     "ForcePasswordChange",
                     "true"
                 );
+                HttpContext.Session.Remove(
+    "LoginNonce"
+);
+
+                HttpContext.Session.Remove(
+                    "LoginNonceCreated"
+                );
 
                 return RedirectToAction(
                     "ChangePassword"
@@ -212,7 +341,9 @@ namespace GPMS.Controllers
         [HttpGet]
         public IActionResult ForgotPassword()
         {
-            return View(new ForgotPasswordViewModel());
+            return View(
+                new ForgotPasswordViewModel()
+            );
         }
 
         // =========================================
@@ -242,7 +373,6 @@ namespace GPMS.Controllers
                         .Replace("/", "_")
                         .Replace("=", "");
 
-                // ✅ HASH TOKEN
                 var hashedToken =
                     HashToken(rawToken);
 
@@ -315,6 +445,11 @@ namespace GPMS.Controllers
                 );
             }
 
+            var user = _db.Employees
+    .FirstOrDefault(x => x.Email == email);
+
+            ViewBag.Username = user?.Username;
+
             return View(new ResetPasswordViewModel
             {
                 Token = token,
@@ -332,10 +467,6 @@ namespace GPMS.Controllers
         {
             if (!ModelState.IsValid)
                 return View(model);
-
-
-
-
 
             var user = await _db.Employees
                 .FirstOrDefaultAsync(e =>
@@ -357,7 +488,9 @@ namespace GPMS.Controllers
                 );
             }
 
-            // ✅ SERVER SIDE PBKDF2 HASHING
+            // =========================================
+            // STORE HASHED PASSWORD
+            // =========================================
             user.Epassword =
                 _passwordHasher.HashPassword(
                     user,
@@ -387,7 +520,9 @@ namespace GPMS.Controllers
         [HttpGet]
         public IActionResult ChangePassword()
         {
-            return View(new ChangePasswordViewModel());
+            return View(
+                new ChangePasswordViewModel()
+            );
         }
 
         // =========================================
@@ -419,7 +554,9 @@ namespace GPMS.Controllers
             if (user == null)
                 return RedirectToAction("Login");
 
-            // ✅ VERIFY HASHED PASSWORD
+            // =========================================
+            // VERIFY CURRENT PASSWORD
+            // =========================================
             var result =
                 _passwordHasher.VerifyHashedPassword(
                     user,
@@ -448,14 +585,12 @@ namespace GPMS.Controllers
                     "New password must be different."
                 );
 
-
-
-
-
-
+                return View(model);
             }
 
-            // ✅ STORE NEW HASHED PASSWORD
+            // =========================================
+            // STORE NEW HASHED PASSWORD
+            // =========================================
             user.Epassword =
                 _passwordHasher.HashPassword(
                     user,
