@@ -1,4 +1,4 @@
-﻿using GPMS.Data;
+using GPMS.Data;
 using GPMS.Models;
 using GPMS.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -281,6 +281,29 @@ namespace GPMS.Controllers
                     ClaimTypes.NameIdentifier
                 )
             );
+
+            // 🔥 MARK MESSAGES AS READ
+
+            var unreadMessages = await _context.MessageReceivers
+
+                .Include(r => r.Message)
+
+                .Where(r =>
+                    r.ReceiverId == currentUserId
+                    &&
+                    r.Message.SenderId == employeeId
+                    &&
+                    !r.IsRead
+                )
+
+                .ToListAsync();
+
+            foreach (var msg in unreadMessages)
+            {
+                msg.IsRead = true;
+            }
+
+            await _context.SaveChangesAsync();
 
             var messages =
                 await _context.Messages
