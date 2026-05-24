@@ -1,4 +1,4 @@
-﻿@model IEnumerable<GPMS.Models.Task>
+@model IEnumerable<GPMS.Models.Task>
 
 <link rel="stylesheet" href="~/css/site.css" />
 
@@ -179,4 +179,52 @@
 
         window.location.href = url;
     }
+</script>
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const projectDropdown =
+            document.getElementById("projectId");
+
+        const moduleDropdown =
+            document.getElementById("moduleId");
+
+        projectDropdown.addEventListener("change", function () {
+
+            const projectId = this.value;
+
+            // Reset modules
+            moduleDropdown.innerHTML =
+                '<option value="">All Modules</option>';
+
+            // No project selected
+            if (!projectId)
+                return;
+
+            // Fetch modules of selected project
+            fetch('/Task/GetModulesByProject?projectId=' + projectId)
+
+                .then(response => response.json())
+
+                .then(data => {
+
+                    data.forEach(module => {
+
+                        let option =
+                            document.createElement("option");
+
+                        option.value = module.moduleId;
+                        option.text = module.moduleName;
+
+                        moduleDropdown.appendChild(option);
+                    });
+
+                });
+
+        });
+
+    });
+
 </script>
