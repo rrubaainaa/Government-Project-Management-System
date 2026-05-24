@@ -1,4 +1,4 @@
-﻿/* =========================================
+/* =========================================
 FLOATING CHAT BUTTON
 ========================================= */
 
@@ -25,24 +25,23 @@ FLOATING CHAT BUTTON
         transform: scale(1.05);
     }
 
-/* =========================================
-UNREAD BADGE
-========================================= */
-
-.chat-badge {
+.chat-notification-badge {
     position: absolute;
-    top: -5px;
-    right: -5px;
-    background: red;
+    top: -2px;
+    right: -2px;
+    width: 20px;
+    height: 20px;
+    background: #ff0000;
     color: white;
-    width: 22px;
-    height: 22px;
     border-radius: 50%;
-    font-size: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 11px;
     font-weight: bold;
+    border: 2px solid white;
+    line-height: 1;
+    z-index: 10000;
 }
 
 /* =========================================
@@ -621,3 +620,4 @@ RESPONSIVE
     color: #666;
     align-self: flex-end;
 }
+
