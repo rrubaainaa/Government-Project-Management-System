@@ -1,0 +1,15 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: gpms-sqlserver
+    platform: linux/amd64
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "SuperStrong!Passw0rd"
+    ports:
+      - "1433:1433"
+    volumes:
+      - gpms_sql_data:/var/opt/mssql
+
+volumes:
+  gpms_sql_data:
